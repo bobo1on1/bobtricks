@@ -1,13 +1,13 @@
 /*
- * bobtricks
- * Copyright (C) Bob 2013
+ * boblight
+ * Copyright (C) Bob  2009 
  * 
- * bobtricks is free software: you can redistribute it and/or modify it
+ * boblight is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
  * Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  * 
- * bobtricks is distributed in the hope that it will be useful, but
+ * boblight is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU General Public License for more details.
@@ -16,16 +16,25 @@
  * with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "bobtricks.h"
+#ifndef CMUTEX
+#define CMUTEX
 
-int main (int argc, char *argv[])
+#include "inclstdint.h"
+
+#include <pthread.h>
+
+class CMutex
 {
-  CBobTricks bobtricks(argc, argv);
+  public:
+    CMutex();
+    virtual ~CMutex();
+    bool Lock();
+    void Unlock();
+    bool TryLock();
 
-  bobtricks.Setup();
-  bobtricks.Process();
-  bobtricks.Cleanup();
+  protected:
+    pthread_mutex_t m_mutex;
+    int	            m_refcount;
+};
 
-  return 0;
-}
-
+#endif //CMUTEX

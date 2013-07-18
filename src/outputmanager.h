@@ -16,16 +16,22 @@
  * with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "bobtricks.h"
+#ifndef OUTPUTMANAGER_H
+#define OUTPUTMANAGER_H
 
-int main (int argc, char *argv[])
+#include "artnetmanager.h"
+
+class COutputManager : public CArtnetManager
 {
-  CBobTricks bobtricks(argc, argv);
+  public:
+    COutputManager(CBobTricks& bobtricks);
+    ~COutputManager();
 
-  bobtricks.Setup();
-  bobtricks.Process();
-  bobtricks.Cleanup();
+    void Process();
+    int64_t MaxDelay();
 
-  return 0;
-}
+  private:
+    CJSONGenerator* SettingsToJSON(bool tofile);
+};
 
+#endif //OUTPUTMANAGER_H

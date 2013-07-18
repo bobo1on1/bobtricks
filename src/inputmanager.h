@@ -16,16 +16,22 @@
  * with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "bobtricks.h"
+#ifndef INPUTMANAGER_H
+#define INPUTMANAGER_H
 
-int main (int argc, char *argv[])
+#include "artnetmanager.h"
+#include "util/udpsocket.h"
+
+class CInputManager : public CArtnetManager
 {
-  CBobTricks bobtricks(argc, argv);
+  public:
+    CInputManager(CBobTricks& bobtricks);
+    ~CInputManager();
 
-  bobtricks.Setup();
-  bobtricks.Process();
-  bobtricks.Cleanup();
+    void ParsePacket(Packet* packet);
 
-  return 0;
-}
+  private:
+    CJSONGenerator* SettingsToJSON(bool tofile);
+};
 
+#endif //INPUTMANAGER_H
