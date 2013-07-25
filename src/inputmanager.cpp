@@ -132,69 +132,174 @@ void CInputManager::LoadUniverse(CJSONElement* jsonuniverse, std::string source)
     }
   }
 
-  double alpha = 1.0;
-  JSONMap::iterator italpha = universemap.find("alpha");
-  if (italpha != universemap.end())
+  JSONMap::iterator itoutputs = universemap.find("outputs");
+  std::vector<COutputMap*> outputmaps;
+  if (itoutputs != universemap.end())
   {
-    if (!italpha->second->IsNumber() || italpha->second->ToDouble() <= 0.0)
+    if (!itoutputs->second->IsArray())
     {
-      LogError("%sinvalid value for alpha: %s", source.c_str(), ToJSON(italpha->second).c_str());
+      LogError("%sinvalid value for outputs: %s", source.c_str(), ToJSON(itoutputs->second).c_str());
       return;
     }
     else
     {
-      alpha = italpha->second->ToDouble();
+      JSONArray& outputs = itoutputs->second->AsArray();
+      ParseOutputs(outputs, outputmaps, name, source);
     }
   }
-
-  int priority = 1000;
-  JSONMap::iterator itpriority = universemap.find("priority");
-  if (itpriority != universemap.end())
+  else
   {
-    if (!itpriority->second->IsNumber())
-    {
-      LogError("%sinvalid value for priority: %s", source.c_str(), ToJSON(itpriority->second).c_str());
-      return;
-    }
-    else
-    {
-      priority = itpriority->second->ToInt64();
-    }
+    Log("WARNING:%s no outputs defined", source.c_str());
   }
 
-  string output;
-  JSONMap::iterator itoutput = universemap.find("output");
-  if (itoutput == universemap.end())
-  {
-    LogError("%soutput missing", source.c_str());
-  }
-  else if (!itoutput->second->IsString())
-  {
-    LogError("%sinvalid value for output: %s", source.c_str(), ToJSON(itoutput->second).c_str());
-    return;
-  }
-  output = itoutput->second->AsString();
+  Log("adding input universe \"%s\" with portaddress:%"PRIi64" ipaddress:%s enabled:%s",
+      name.c_str(), portaddress, itipaddress->second->AsString().c_str(), enabled ? "yes" : "no");
 
-  CUniverse* outputuni = m_bobtricks.OutputManager().FindUniverse(output);
-  if (outputuni == NULL)
+  CInputUniverse* universe = new CInputUniverse(name, portaddress, itipaddress->second->AsString(), enabled);
+  for (vector<COutputMap*>::iterator it = outputmaps.begin(); it != outputmaps.end(); it++)
   {
-    LogError("%soutput universe \"%s\" doesn't exist", source.c_str(), output.c_str());
-    return;
+    universe->AddOutputMap(*it);
+    (*it)->m_outputuniverse->AddUser(universe);
   }
-
-  Log("adding input universe \"%s\" with portaddress:%"PRIi64" ipaddress:%s enabled:%s alpha:%f output:%s priority:%i",
-      name.c_str(), portaddress, itipaddress->second->AsString().c_str(),
-      enabled ? "yes" : "no", alpha, output.c_str(), priority);
-
-  CUniverse* universe = new CUniverse(name, portaddress, itipaddress->second->AsString(),
-                                      enabled, alpha, output, priority, outputuni);
+  
   m_universes.push_back(universe);
-  outputuni->AddUser(universe);
 }
 
-CUniverse* CInputManager::FindUniverse(const std::string& name)
+void CInputManager::ParseOutputs(JSONArray& outputs, std::vector<COutputMap*>& outputmaps,
+                                 const std::string& inputname, const std::string& source)
 {
-  for (list<CUniverse*>::iterator it = m_universes.begin(); it != m_universes.end(); it++)
+  for (JSONArray::iterator it = outputs.begin(); it != outputs.end(); it++)
+  {
+    if (!(*it)->IsMap())
+    {
+      LogError("%sinvalid value for output: %s", source.c_str(), ToJSON(*it).c_str());
+      continue;
+    }
+
+    JSONMap& output = (*it)->AsMap();
+
+    JSONMap::iterator ituniverse = output.find("universe");
+    if (ituniverse == output.end())
+    {
+      LogError("%suniverse not defined in output", source.c_str());
+      continue;
+    }
+    else if (!ituniverse->second->IsString())
+    {
+      LogError("%sinvalid value for universe in output: %s", source.c_str(), ToJSON(ituniverse->second).c_str());
+      continue;
+    }
+
+    int64_t priority = 1000;
+    if (LoadInt(output, priority, "priority", false, source) == Invalid)
+      continue;
+
+    double alpha = 1.0;
+    if (LoadDouble(output, alpha, "alpha", false, source) == Invalid)
+      continue;
+
+    int64_t instart = 0;
+    if (LoadInt(output, instart, "instart", false, source) == Invalid)
+      continue;
+
+    int64_t outstart = 0;
+    if (LoadInt(output, outstart, "outstart", false, source) == Invalid)
+      continue;
+
+    int64_t channels = 512;
+    if (LoadInt(output, channels, "channels", false, source) == Invalid)
+      continue;
+
+    bool reverse = false;
+    if (LoadBool(output, reverse, "reverse", false, source) == Invalid)
+      continue;
+
+    string& universestr = ituniverse->second->AsString();
+    COutputUniverse* outputuniverse = m_bobtricks.OutputManager().FindUniverse(universestr);
+    if (outputuniverse == NULL)
+    {
+      LogError("%soutput universe \"%s\" doesn't exist", source.c_str(), universestr.c_str());
+      continue;
+    }
+
+    Log("input universe \"%s\" adding output map to universe:\"%s\""
+        "priority:%"PRIi64" instart:%"PRIi64" outstart:%"PRIi64" channels:%"PRIi64" reverse:%s alpha:%f",
+        inputname.c_str(), universestr.c_str(), priority, instart, outstart, channels, reverse ? "yes" : "no", alpha);
+
+    COutputMap* outputmap = new COutputMap(outputuniverse, priority, instart, outstart, channels, reverse, alpha);
+    outputmaps.push_back(outputmap);
+  }
+}
+
+CInputManager::ParseResult CInputManager::LoadDouble(JSONMap& jsonmap, double& value, const std::string& name,
+                                                     bool mandatory, const std::string& source)
+{
+  JSONMap::iterator itvalue = jsonmap.find(name);
+
+  if (itvalue == jsonmap.end())
+  {
+    if (mandatory)
+      LogError("%svalue \"%s\" missing", source.c_str(), name.c_str());
+    return Missing;
+  }
+
+  if (!itvalue->second->IsNumber())
+  {
+    LogError("%sinvalue value for %s:%s", source.c_str(), name.c_str(), ToJSON(itvalue->second).c_str());
+    return Invalid;
+  }
+
+  value = itvalue->second->ToDouble();
+  return Success;
+}
+
+CInputManager::ParseResult CInputManager::LoadInt(JSONMap& jsonmap, int64_t& value, const std::string& name,
+                                                  bool mandatory, const std::string& source)
+{
+  JSONMap::iterator itvalue = jsonmap.find(name);
+
+  if (itvalue == jsonmap.end())
+  {
+    if (mandatory)
+      LogError("%svalue \"%s\" missing", source.c_str(), name.c_str());
+    return Missing;
+  }
+
+  if (!itvalue->second->IsNumber())
+  {
+    LogError("%sinvalue value for %s:%s", source.c_str(), name.c_str(), ToJSON(itvalue->second).c_str());
+    return Invalid;
+  }
+
+  value = itvalue->second->ToInt64();
+  return Success;
+}
+
+CInputManager::ParseResult CInputManager::LoadBool(JSONMap& jsonmap, bool& value, const std::string& name,
+                                                   bool mandatory, const std::string& source)
+{
+  JSONMap::iterator itvalue = jsonmap.find(name);
+
+  if (itvalue == jsonmap.end())
+  {
+    if (mandatory)
+      LogError("%svalue \"%s\" missing", source.c_str(), name.c_str());
+    return Missing;
+  }
+
+  if (!itvalue->second->IsBool())
+  {
+    LogError("%sinvalue value for %s:%s", source.c_str(), name.c_str(), ToJSON(itvalue->second).c_str());
+    return Invalid;
+  }
+
+  value = itvalue->second->AsBool();
+  return Success;
+}
+
+CInputUniverse* CInputManager::FindUniverse(const std::string& name)
+{
+  for (list<CInputUniverse*>::iterator it = m_universes.begin(); it != m_universes.end(); it++)
   {
     if ((*it)->Name() == name)
       return *it;
@@ -203,9 +308,9 @@ CUniverse* CInputManager::FindUniverse(const std::string& name)
   return NULL;
 }
 
-CUniverse* CInputManager::FindUniverse(const std::string& ipaddress, uint16_t portaddress)
+CInputUniverse* CInputManager::FindUniverse(const std::string& ipaddress, uint16_t portaddress)
 {
-  for (list<CUniverse*>::iterator it = m_universes.begin(); it != m_universes.end(); it++)
+  for (list<CInputUniverse*>::iterator it = m_universes.begin(); it != m_universes.end(); it++)
   {
     if ((*it)->IpAddress() == ipaddress && (*it)->PortAddress() == portaddress)
       return *it;
@@ -242,12 +347,15 @@ void CInputManager::ParsePacket(Packet* packet)
 
   uint16_t portaddress = dmxptr->SubUni | (((uint16_t)dmxptr->Net) << 8);
 
-  CUniverse* universe = FindUniverse(packet->destination, portaddress);
+  CInputUniverse* universe = FindUniverse(packet->destination, portaddress);
   if (universe == NULL)
   {
     LogDebug("packet was meant for unknown universe ip:\"%s\" portaddress:%i", packet->destination.c_str(), portaddress);
     return;
   }
+
+  LogDebug("Received packet for universe ip:\"%s\" portaddress:%i accepting for my universe \"%s\"",
+      packet->destination.c_str(), portaddress, universe->Name().c_str());
 
   universe->FromArtNet(packet);
 }

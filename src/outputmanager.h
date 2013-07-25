@@ -21,7 +21,7 @@
 
 #include "util/inclstdint.h"
 #include "util/mutex.h"
-#include "universe.h"
+#include "outputuniverse.h"
 #include "jsonsettings.h"
 
 #include <list>
@@ -34,19 +34,20 @@ class COutputManager : public CJSONSettings
     COutputManager(CBobTricks& bobtricks);
     ~COutputManager();
 
-    void                  Process();
-    int64_t               MaxDelay();
+    void             Process();
+    int64_t          MaxDelay();
 
-    void                  LoadSettings(JSONMap& root, bool reload, bool fromfile, const std::string& source);
-    CUniverse*            FindUniverse(const std::string& name);
+    void             LoadSettings(JSONMap& root, bool reload, bool fromfile, const std::string& source);
+    COutputUniverse* FindUniverse(const std::string& name);
 
   private:
-    void                  LoadUniverse(CJSONElement* jsonuniverse, std::string source);
-    CJSONGenerator*       SettingsToJSON(bool tofile);
+    void             LoadUniverse(CJSONElement* jsonuniverse, std::string source);
+    CJSONGenerator*  SettingsToJSON(bool tofile);
 
-    CBobTricks&           m_bobtricks;
-    CMutex                m_mutex;
-    std::list<CUniverse*> m_universes;
+    CBobTricks&      m_bobtricks;
+    CMutex           m_mutex;
+
+    std::list<COutputUniverse*> m_universes;
 };
 
 #endif //OUTPUTMANAGER_H

@@ -31,15 +31,39 @@
 #include <fcntl.h>
 #include <sys/select.h>
 #include <algorithm>
+#include <getopt.h>
 
 using namespace std;
 
 CBobTricks::CBobTricks(int argc, char *argv[]) :
   m_outputmanager(*this),
-  m_inputmanager(*this)
+  m_inputmanager(*this),
+  m_scriptmanager(*this)
 {
-  g_printdebuglevel = true;
+  g_printdebuglevel = false;
   m_stop            = false;
+
+  struct option longoptions[] =
+  {
+   {"debug", no_argument, NULL, 'd'},
+   {0, 0, 0, 0}
+  };
+
+  const char* shortoptions = "d";
+  int         optionindex = 0;
+  int         c;
+
+  while ((c = getopt_long(argc, argv, shortoptions, longoptions, &optionindex)) != -1)
+  {
+    if (c == 'd')
+    {
+      g_printdebuglevel = true;
+    }
+    else if (c == '?')
+    {
+      exit(1);
+    }
+  }
 
   if (pipe2(m_pipe, O_NONBLOCK) == -1)
   {
@@ -57,6 +81,8 @@ void CBobTricks::Setup()
   SetLogFile("bobtricks.log");
   m_outputmanager.LoadFile(false);
   m_inputmanager.LoadFile(false);
+  m_scriptmanager.LoadFile(false);
+  m_scriptmanager.StartThread();
 }
 
 void CBobTricks::Process()
@@ -118,7 +144,7 @@ void CBobTricks::Process()
             break;
           }
         }
-        while (m_socket.IsOpen() && GetTimeUs() - start < 1000);
+        while (m_socket.IsOpen() && GetTimeUs() - start < 1000 && m_inqueue.size() < 10000);
       }
 
       if (!m_outqueue.empty() && FD_ISSET(m_socket.GetSocket(), &writeset))

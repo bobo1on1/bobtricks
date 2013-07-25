@@ -21,7 +21,11 @@ def configure(conf):
 
   conf.check(lib='pthread', uselib_store='pthread', mandatory=False)
   conf.check(lib='yajl', uselib_store='yajl')
+
   conf.check(lib='lua5.1', uselib_store='lua')
+
+  conf.env.append_value('LINKFLAGS', '-llua5.1')
+  conf.check(lib='lua5.1-posix', uselib_store='lua-posix')
 
   conf.write_config_header('config.h')
 
@@ -30,17 +34,22 @@ def build(bld):
                       src/bobtricks.cpp\
                       src/jsonsettings.cpp\
                       src/universe.cpp\
+                      src/outputuniverse.cpp\
+                      src/inputuniverse.cpp\
                       src/outputmanager.cpp\
                       src/inputmanager.cpp\
                       src/user.cpp\
+                      src/scriptmanager.cpp\
+                      src/script.cpp\
                       src/util/udpsocket.cpp\
                       src/util/log.cpp\
                       src/util/mutex.cpp\
                       src/util/condition.cpp\
                       src/util/timeutils.cpp\
                       src/util/JSON.cpp\
+                      src/util/thread.cpp\
                       src/util/misc.cpp',
-              use=['pthread', 'yajl', 'lua'],
+              use=['pthread', 'yajl', 'lua', 'lua-posix'],
               includes='./src',
               cxxflags='-Wall -g -DUTILNAMESPACE=BobTricksUtil',
               target='bobtricks')

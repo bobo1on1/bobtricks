@@ -17,55 +17,62 @@
  */
 
 #include "user.h"
-#include "universe.h"
+#include "outputuniverse.h"
+#include "util/log.h"
 
 using namespace std;
 
+void COutputMap::FillBuffer(float* outbuf)
+{
+  if (m_outstart < 0 || m_outstart > 511)
+    return;
+
+  int nrchannels = m_nrchannels;
+  if (m_outstart + nrchannels > 512)
+    nrchannels = 512 - m_outstart;
+
+  float* outptr = outbuf + m_outstart;
+  float* outend = outptr + nrchannels;
+  float* inptr = &m_outvalues[0];
+  float* alphaptr = &m_alphas[0];
+
+  while (outptr != outend)
+  {
+    float alpha = *(alphaptr++) * m_alpha;
+    *outptr = *outptr * (1.0f - alpha) + *inptr * alpha;
+    outptr++;
+    inptr++;
+  }
+}
+
 CUser::CUser()
 {
-  m_priority = 1000;
-  m_alpha    = 1.0f;
 }
 
 CUser::~CUser()
 {
 }
 
+void CUser::AddOutputMap(COutputMap* outputmap)
+{
+  m_outputmaps.push_back(outputmap);
+}
+
 void CUser::SignalUpdate()
 {
-  for (vector<COutputMap*>::iterator it = m_outputmaps.begin(); it != m_outputmaps.end(); it++)
-    (*it)->m_output->SetUpdated();
-}
-
-bool CUser::SortByPriority(CUser* first, CUser* second)
-{
-  return first->Priority() < second->Priority();
-}
-
-void CUser::FillBuffer(CUniverse* universe, float* output)
-{
-  for (vector<COutputMap*>::iterator it = m_outputmaps.begin(); it != m_outputmaps.end(); it++)
+  for (list<COutputMap*>::iterator it = m_outputmaps.begin(); it != m_outputmaps.end(); it++)
   {
-    if ((*it)->m_output == universe)
-    {
-      int start = (*it)->m_start;
-      int nr = (*it)->m_outvalues.size();
-      nr = min(512 - start, nr);
+    LogDebug("Signaling update of output universe \"%s\"", (*it)->m_outputuniverse->Name().c_str());
+    (*it)->m_outputuniverse->SetUpdated();
+  }
+}
 
-      float* inptr = &((*it)->m_outvalues[0]);
-      float* alphaptr = &((*it)->m_alphas[0]);
-      float* outptr = output + start;
-      float* outptrend = outptr + nr;
-
-      while (outptr != outptrend)
-      {
-        float alpha = *alphaptr * m_alpha;
-        *outptr = *outptr * (1.0f - alpha) + *inptr * alpha;
-        outptr++;
-        inptr++;
-        alphaptr++;
-      }
-    }
+void CUser::GetOutputMaps(COutputUniverse* universe, std::list<COutputMap*>& outputmaps)
+{
+  for (list<COutputMap*>::iterator it = m_outputmaps.begin(); it != m_outputmaps.end(); it++)
+  {
+    if ((*it)->m_outputuniverse == universe)
+      outputmaps.push_back(*it);
   }
 }
 

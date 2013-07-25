@@ -21,7 +21,8 @@
 
 #include "util/udpsocket.h"
 #include "jsonsettings.h"
-#include "universe.h"
+#include "util/JSON.h"
+#include "inputuniverse.h"
 #include "util/mutex.h"
 #include <list>
 
@@ -33,18 +34,31 @@ class CInputManager : public CJSONSettings
     CInputManager(CBobTricks& bobtricks);
     ~CInputManager();
 
-    void                  LoadSettings(JSONMap& root, bool reload, bool fromfile, const std::string& source);
-    void                  ParsePacket(Packet* packet);
+    void            LoadSettings(JSONMap& root, bool reload, bool fromfile, const std::string& source);
+    void            ParsePacket(Packet* packet);
 
   private:
-    void                  LoadUniverse(CJSONElement* jsonuniverse, std::string source);
-    CJSONGenerator*       SettingsToJSON(bool tofile);
-    CUniverse*            FindUniverse(const std::string& name);
-    CUniverse*            FindUniverse(const std::string& ipaddress, uint16_t portaddress);
+    void            LoadUniverse(CJSONElement* jsonuniverse, std::string source);
+    CJSONGenerator* SettingsToJSON(bool tofile);
+    CInputUniverse* FindUniverse(const std::string& name);
+    CInputUniverse* FindUniverse(const std::string& ipaddress, uint16_t portaddress);
+    void            ParseOutputs(JSONArray& outputs, std::vector<COutputMap*>& outputmaps,
+                                 const std::string& inputname, const std::string& source);
 
-    CMutex                m_mutex;
-    std::list<CUniverse*> m_universes;
-    CBobTricks&           m_bobtricks;
+    enum ParseResult
+    {
+      Missing = -1,
+      Invalid = 0,
+      Success = 1
+    };
+
+    ParseResult     LoadDouble(JSONMap& jsonmap, double& value, const std::string& name, bool mandatory, const std::string& source);
+    ParseResult     LoadInt(JSONMap& jsonmap, int64_t& value, const std::string& name, bool mandatory, const std::string& source);
+    ParseResult     LoadBool(JSONMap& jsonmap, bool& value, const std::string& name, bool mandatory, const std::string& source);
+
+    CBobTricks&     m_bobtricks;
+    CMutex          m_mutex;
+    std::list<CInputUniverse*> m_universes;
 };
 
 #endif //INPUTMANAGER_H

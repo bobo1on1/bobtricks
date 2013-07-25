@@ -23,6 +23,7 @@
 #include "util/inclstdint.h"
 #include "outputmanager.h"
 #include "inputmanager.h"
+#include "scriptmanager.h"
 #include <string>
 #include <vector>
 #include <deque>
@@ -61,6 +62,7 @@ class CBobTricks
 
     COutputManager      m_outputmanager;
     CInputManager       m_inputmanager;
+    CScriptManager      m_scriptmanager;
 };
 
 #endif //BOBTRICKS_H

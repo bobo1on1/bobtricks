@@ -20,8 +20,6 @@
 #define UNIVERSE_H
 
 #include "util/inclstdint.h"
-#include "util/udpsocket.h"
-#include "user.h"
 #include <string>
 #include <list>
 
@@ -78,41 +76,23 @@ struct SArtDmx
   uint8_t  Data[];
 } __attribute__((packed));
 
-class CUniverse : public CUser
+class CUniverse
 {
   public:
-    CUniverse(const std::string& name, uint16_t portaddress, const std::string& ipaddress, bool enabled, double maxrate);
-    CUniverse(const std::string& name, uint16_t portaddress, const std::string& ipaddress, bool enabled,
-              double alpha, const std::string& output, int priority, CUniverse* outputuni);
+    CUniverse(const std::string& name, uint16_t portaddress, const std::string& ipaddress, bool enabled);
     ~CUniverse();
 
     const std::string& Name()        { return m_name;        }
     const std::string& IpAddress()   { return m_ipaddress;   }
     uint16_t           PortAddress() { return m_portaddress; }
 
-    int64_t            MaxDelay(int64_t now);
-    bool               NeedsTransmit(int64_t now);
-    Packet*            ToArtNet(int64_t now);
-    bool               FromArtNet(Packet* packet);
 
-    void               AddUser(CUser* user);
-    void               SetUpdated() { m_updated = true; }
-    void               PreOutput();
-
-  private:
-    void               GenerateOutput();
-
-    std::string       m_name;
-    uint8_t           m_channels[512];
-    uint16_t          m_portaddress;
-    std::string       m_ipaddress;
-    bool              m_enabled;
-    int64_t           m_lasttransmit;
-    double            m_maxrate;
-    bool              m_updated;
-    std::string       m_output;
-
-    std::list<CUser*> m_users;
+  protected:
+    uint8_t            m_channels[512];
+    std::string        m_name;
+    uint16_t           m_portaddress;
+    std::string        m_ipaddress;
+    bool               m_enabled;
 };
 
 #endif //UNIVERSE_H

@@ -53,9 +53,9 @@ void COutputManager::LoadSettings(JSONMap& root, bool reload, bool fromfile, con
     LoadUniverse(*it, source + ": ");
 }
 
-CUniverse* COutputManager::FindUniverse(const std::string& name)
+COutputUniverse* COutputManager::FindUniverse(const std::string& name)
 {
-  for (list<CUniverse*>::iterator it = m_universes.begin(); it != m_universes.end(); it++)
+  for (list<COutputUniverse*>::iterator it = m_universes.begin(); it != m_universes.end(); it++)
   {
     if ((*it)->Name() == name)
       return *it;
@@ -160,7 +160,7 @@ void COutputManager::LoadUniverse(CJSONElement* jsonuniverse, std::string source
   Log("adding output universe \"%s\" with portaddress:%"PRIi64" ipaddress:%s enabled:%s maxrate:%f",
       name.c_str(), portaddress, itipaddress->second->AsString().c_str(), enabled ? "yes" : "no", maxrate);
 
-  m_universes.push_back(new CUniverse(name, portaddress, itipaddress->second->AsString(), enabled, maxrate));
+  m_universes.push_back(new COutputUniverse(name, portaddress, itipaddress->second->AsString(), enabled, maxrate));
 }
 
 CJSONGenerator* COutputManager::SettingsToJSON(bool tofile)
@@ -172,7 +172,7 @@ void COutputManager::Process()
 {
   int64_t now = GetTimeUs();
 
-  for (list<CUniverse*>::iterator it = m_universes.begin(); it != m_universes.end(); it++)
+  for (list<COutputUniverse*>::iterator it = m_universes.begin(); it != m_universes.end(); it++)
   {
     if ((*it)->NeedsTransmit(now))
       m_bobtricks.QueueTransmit((*it)->ToArtNet(now));
@@ -183,7 +183,7 @@ int64_t COutputManager::MaxDelay()
 {
   int64_t now = GetTimeUs();
   int64_t maxdelay = -1;
-  for (list<CUniverse*>::iterator it = m_universes.begin(); it != m_universes.end(); it++)
+  for (list<COutputUniverse*>::iterator it = m_universes.begin(); it != m_universes.end(); it++)
   {
     int64_t universedelay = (*it)->MaxDelay(now);
     if (universedelay != -1 && (universedelay < maxdelay || maxdelay == -1))

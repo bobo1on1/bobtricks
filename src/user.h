@@ -20,30 +20,45 @@
 #define USER_H
 
 #include <vector>
+#include <list>
 #include <string>
 
-class CUniverse;
+class COutputUniverse;
+class CUser;
 
 class COutputMap
 {
   public:
-    COutputMap(CUniverse* output, int start, int nrchannels)
+    COutputMap(COutputUniverse* outputuniverse, int priority, int instart, int outstart, int nrchannels, bool reverse, float alpha)
     {
-      m_output = output;
-      m_start = start;
+      m_outputuniverse = outputuniverse;
+      m_priority = priority;
+      m_instart = instart;
+      m_outstart = outstart;
+      m_nrchannels = nrchannels;
+      m_reverse = reverse;
+      m_alpha = alpha;
 
-      m_outvalues.resize(nrchannels);
-      m_alphas.resize(nrchannels);
+      m_outvalues.resize(m_nrchannels);
+      m_alphas.resize(m_nrchannels);
 
-      for (int i = 0; i < nrchannels; i++)
+      for (int i = 0; i < m_nrchannels; i++)
       {
         m_outvalues[i] = 0.0f;
-        m_alphas[0] = 1.0f;
+        m_alphas[i] = 1.0f;
       }
     }
 
-    CUniverse*         m_output;
-    int                m_start;
+    static bool        SortByPriority(COutputMap* first, COutputMap* second) { return first->m_priority < second->m_priority; }
+    void               FillBuffer(float* outbuf);
+
+    COutputUniverse*   m_outputuniverse;
+    int                m_priority;
+    int                m_instart;
+    int                m_outstart;
+    int                m_nrchannels;
+    bool               m_reverse;
+    float              m_alpha;
     std::vector<float> m_outvalues;
     std::vector<float> m_alphas;
 };
@@ -54,19 +69,13 @@ class CUser
     CUser();
     ~CUser();
 
-    int   Priority() { return m_priority; }
-    float Alpha()    { return m_alpha;    }
-    void  SignalUpdate();
+    void    AddOutputMap(COutputMap* outputmap);
+    void    SignalUpdate();
     virtual void PreOutput() = 0;
-    void  FillBuffer(CUniverse* universe, float* output);
-
-    static bool SortByPriority(CUser* first, CUser* second);
+    void    GetOutputMaps(COutputUniverse* universe, std::list<COutputMap*>& outputmaps);
 
   protected:
-    int   m_priority;
-    float m_alpha;
-
-    std::vector<COutputMap*> m_outputmaps;
+    std::list<COutputMap*> m_outputmaps;
 };
 
 #endif //USER_H

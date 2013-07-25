@@ -16,24 +16,33 @@
  * with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef OUTPUTUNIVERSE_H
+#define OUTPUTUNIVERSE_H
+
 #include "universe.h"
-#include "util/timeutils.h"
-#include "util/misc.h"
-#include <string.h>
-#include <algorithm>
+#include "user.h"
+#include "util/udpsocket.h"
 
-using namespace std;
-
-CUniverse::CUniverse(const std::string& name, uint16_t portaddress, const std::string& ipaddress, bool enabled)
+class COutputUniverse : public CUniverse
 {
-  memset(m_channels, 0, sizeof(m_channels));
-  m_name = name;
-  m_portaddress = portaddress;
-  m_ipaddress = ipaddress;
-  m_enabled = enabled;
-}
+  public:
+    COutputUniverse(const std::string& name, uint16_t portaddress, const std::string& ipaddress, bool enabled, double maxrate);
+    ~COutputUniverse();
 
-CUniverse::~CUniverse()
-{
-}
+    int64_t MaxDelay(int64_t now);
+    bool    NeedsTransmit(int64_t now);
+    Packet* ToArtNet(int64_t now);
+    void    SetUpdated() { m_updated = true; }
 
+    void    AddUser(CUser* user);
+
+    void    GenerateOutput();
+
+  private:
+    double  m_maxrate;
+    bool    m_updated;
+    int64_t m_lasttransmit;
+    std::list<CUser*> m_users;
+};
+
+#endif //OUTPUTUNIVERSE_H
