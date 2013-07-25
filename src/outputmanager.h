@@ -19,19 +19,34 @@
 #ifndef OUTPUTMANAGER_H
 #define OUTPUTMANAGER_H
 
-#include "artnetmanager.h"
+#include "util/inclstdint.h"
+#include "util/mutex.h"
+#include "universe.h"
+#include "jsonsettings.h"
 
-class COutputManager : public CArtnetManager
+#include <list>
+
+class CBobTricks;
+
+class COutputManager : public CJSONSettings
 {
   public:
     COutputManager(CBobTricks& bobtricks);
     ~COutputManager();
 
-    void Process();
-    int64_t MaxDelay();
+    void                  Process();
+    int64_t               MaxDelay();
+
+    void                  LoadSettings(JSONMap& root, bool reload, bool fromfile, const std::string& source);
+    CUniverse*            FindUniverse(const std::string& name);
 
   private:
-    CJSONGenerator* SettingsToJSON(bool tofile);
+    void                  LoadUniverse(CJSONElement* jsonuniverse, std::string source);
+    CJSONGenerator*       SettingsToJSON(bool tofile);
+
+    CBobTricks&           m_bobtricks;
+    CMutex                m_mutex;
+    std::list<CUniverse*> m_universes;
 };
 
 #endif //OUTPUTMANAGER_H

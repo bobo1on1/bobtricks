@@ -27,12 +27,191 @@
 using namespace std;
 
 CInputManager::CInputManager(CBobTricks& bobtricks) :
-  CArtnetManager(bobtricks, ArtnetInput, SETTINGSFILE, "inputmanager", m_mutex)
+  CJSONSettings(SETTINGSFILE, "inputmanager", m_mutex),
+  m_bobtricks(bobtricks)
 {
 }
 
 CInputManager::~CInputManager()
 {
+}
+
+void CInputManager::LoadSettings(JSONMap& root, bool reload, bool fromfile, const std::string& source)
+{
+  JSONMap::iterator universes = root.find("universes");
+  if (universes == root.end())
+  {
+    LogError("%s: universes array missing", source.c_str());
+    return;
+  }
+  else if (!universes->second->IsArray())
+  {
+    LogError("%s: invalid value for universes: %s", source.c_str(), ToJSON(universes->second).c_str());
+    return;
+  }
+
+  for (JSONArray::iterator it = universes->second->AsArray().begin(); it != universes->second->AsArray().end(); it++)
+    LoadUniverse(*it, source + ": ");
+}
+
+void CInputManager::LoadUniverse(CJSONElement* jsonuniverse, std::string source)
+{
+  if (!jsonuniverse->IsMap())
+  {
+    LogError("%sinvalid value for universe: %s", source.c_str(), ToJSON(jsonuniverse).c_str());
+    return;
+  }
+
+  JSONMap& universemap = jsonuniverse->AsMap();
+
+  JSONMap::iterator itname = universemap.find("name");
+  if (itname == universemap.end())
+  {
+    LogError("%suniverse has no name", source.c_str());
+    return;
+  }
+  else if (!itname->second->IsString())
+  {
+    LogError("%sinvalid value for universe name: %s", source.c_str(), ToJSON(itname->second).c_str());
+    return;
+  }
+
+  const string& name = itname->second->AsString();
+
+  LogDebug("Parsing settings for universe \"%s\"", name.c_str());
+
+  //print the universe name in the source
+  source += "universe \"";
+  source += name;
+  source += "\" ";
+
+  if (FindUniverse(name) != NULL)
+  {
+    LogError("%salready exists", source.c_str());
+    return; //the universe name is used as identifier, it needs to be unique
+  }
+
+  int64_t portaddress = 0;
+  JSONMap::iterator itportaddress = universemap.find("portaddress");
+  if (itportaddress != universemap.end())
+  {
+    if (!itportaddress->second->IsNumber() || itportaddress->second->ToInt64() < 0 || itportaddress->second->ToInt64() > 0x7FFF)
+    {
+      LogError("%sinvalid value for portaddress: %s", source.c_str(), ToJSON(itportaddress->second).c_str());
+      return;
+    }
+    else
+    {
+      portaddress = itportaddress->second->ToInt64();
+    }
+  }
+
+  JSONMap::iterator itipaddress = universemap.find("ipaddress");
+  if (itipaddress == universemap.end())
+  {
+    LogError("%sipaddress missing", source.c_str());
+  }
+  else if (!itipaddress->second->IsString())
+  {
+    LogError("%sinvalid value for ipaddress: %s", source.c_str(), ToJSON(itipaddress->second).c_str());
+    return;
+  }
+
+  bool enabled = true;
+  JSONMap::iterator itenabled = universemap.find("enabled");
+  if (itenabled != universemap.end())
+  {
+    if (!itenabled->second->IsBool())
+    {
+      LogError("%sinvalid value for enabled: %s", source.c_str(), ToJSON(itenabled->second).c_str());
+      return;
+    }
+    else
+    {
+      enabled = itenabled->second->AsBool();
+    }
+  }
+
+  double alpha = 1.0;
+  JSONMap::iterator italpha = universemap.find("alpha");
+  if (italpha != universemap.end())
+  {
+    if (!italpha->second->IsNumber() || italpha->second->ToDouble() <= 0.0)
+    {
+      LogError("%sinvalid value for alpha: %s", source.c_str(), ToJSON(italpha->second).c_str());
+      return;
+    }
+    else
+    {
+      alpha = italpha->second->ToDouble();
+    }
+  }
+
+  int priority = 1000;
+  JSONMap::iterator itpriority = universemap.find("priority");
+  if (itpriority != universemap.end())
+  {
+    if (!itpriority->second->IsNumber())
+    {
+      LogError("%sinvalid value for priority: %s", source.c_str(), ToJSON(itpriority->second).c_str());
+      return;
+    }
+    else
+    {
+      priority = itpriority->second->ToInt64();
+    }
+  }
+
+  string output;
+  JSONMap::iterator itoutput = universemap.find("output");
+  if (itoutput == universemap.end())
+  {
+    LogError("%soutput missing", source.c_str());
+  }
+  else if (!itoutput->second->IsString())
+  {
+    LogError("%sinvalid value for output: %s", source.c_str(), ToJSON(itoutput->second).c_str());
+    return;
+  }
+  output = itoutput->second->AsString();
+
+  CUniverse* outputuni = m_bobtricks.OutputManager().FindUniverse(output);
+  if (outputuni == NULL)
+  {
+    LogError("%soutput universe \"%s\" doesn't exist", source.c_str(), output.c_str());
+    return;
+  }
+
+  Log("adding input universe \"%s\" with portaddress:%"PRIi64" ipaddress:%s enabled:%s alpha:%f output:%s priority:%i",
+      name.c_str(), portaddress, itipaddress->second->AsString().c_str(),
+      enabled ? "yes" : "no", alpha, output.c_str(), priority);
+
+  CUniverse* universe = new CUniverse(name, portaddress, itipaddress->second->AsString(),
+                                      enabled, alpha, output, priority, outputuni);
+  m_universes.push_back(universe);
+  outputuni->AddUser(universe);
+}
+
+CUniverse* CInputManager::FindUniverse(const std::string& name)
+{
+  for (list<CUniverse*>::iterator it = m_universes.begin(); it != m_universes.end(); it++)
+  {
+    if ((*it)->Name() == name)
+      return *it;
+  }
+
+  return NULL;
+}
+
+CUniverse* CInputManager::FindUniverse(const std::string& ipaddress, uint16_t portaddress)
+{
+  for (list<CUniverse*>::iterator it = m_universes.begin(); it != m_universes.end(); it++)
+  {
+    if ((*it)->IpAddress() == ipaddress && (*it)->PortAddress() == portaddress)
+      return *it;
+  }
+ 
+  return NULL;
 }
 
 CJSONGenerator* CInputManager::SettingsToJSON(bool tofile)

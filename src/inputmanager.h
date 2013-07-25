@@ -19,19 +19,32 @@
 #ifndef INPUTMANAGER_H
 #define INPUTMANAGER_H
 
-#include "artnetmanager.h"
 #include "util/udpsocket.h"
+#include "jsonsettings.h"
+#include "universe.h"
+#include "util/mutex.h"
+#include <list>
 
-class CInputManager : public CArtnetManager
+class CBobTricks;
+
+class CInputManager : public CJSONSettings
 {
   public:
     CInputManager(CBobTricks& bobtricks);
     ~CInputManager();
 
-    void ParsePacket(Packet* packet);
+    void                  LoadSettings(JSONMap& root, bool reload, bool fromfile, const std::string& source);
+    void                  ParsePacket(Packet* packet);
 
   private:
-    CJSONGenerator* SettingsToJSON(bool tofile);
+    void                  LoadUniverse(CJSONElement* jsonuniverse, std::string source);
+    CJSONGenerator*       SettingsToJSON(bool tofile);
+    CUniverse*            FindUniverse(const std::string& name);
+    CUniverse*            FindUniverse(const std::string& ipaddress, uint16_t portaddress);
+
+    CMutex                m_mutex;
+    std::list<CUniverse*> m_universes;
+    CBobTricks&           m_bobtricks;
 };
 
 #endif //INPUTMANAGER_H
