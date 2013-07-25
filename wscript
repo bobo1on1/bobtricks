@@ -32,7 +32,6 @@ def build(bld):
                       src/universe.cpp\
                       src/outputmanager.cpp\
                       src/inputmanager.cpp\
-                      src/artnetmanager.cpp\
                       src/user.cpp\
                       src/util/udpsocket.cpp\
                       src/util/log.cpp\
