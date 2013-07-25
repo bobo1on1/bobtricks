@@ -21,7 +21,7 @@ def configure(conf):
 
   conf.check(lib='pthread', uselib_store='pthread', mandatory=False)
   conf.check(lib='yajl', uselib_store='yajl')
-  conf.check(lib='lua5.1-c++', uselib_store='lua')
+  conf.check(lib='lua5.1', uselib_store='lua')
 
   conf.write_config_header('config.h')
 
