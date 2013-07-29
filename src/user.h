@@ -22,6 +22,7 @@
 #include <vector>
 #include <list>
 #include <string>
+#include "util/timeutils.h"
 
 class COutputUniverse;
 class CUser;
@@ -29,7 +30,7 @@ class CUser;
 class COutputMap
 {
   public:
-    COutputMap(COutputUniverse* outputuniverse, int priority, int instart, int outstart, int nrchannels, bool reverse, float alpha)
+    COutputMap(COutputUniverse* outputuniverse, int priority, int instart, int outstart, int nrchannels, bool reverse, float alpha, int64_t timeout)
     {
       m_outputuniverse = outputuniverse;
       m_priority = priority;
@@ -38,6 +39,7 @@ class COutputMap
       m_nrchannels = nrchannels;
       m_reverse = reverse;
       m_alpha = alpha;
+      m_timeout = timeout;
 
       m_outvalues.resize(m_nrchannels);
       m_alphas.resize(m_nrchannels);
@@ -47,6 +49,8 @@ class COutputMap
         m_outvalues[i] = 0.0f;
         m_alphas[i] = 1.0f;
       }
+
+      m_lastupdate = GetTimeUs();
     }
 
     static bool        SortByPriority(COutputMap* first, COutputMap* second) { return first->m_priority < second->m_priority; }
@@ -61,6 +65,8 @@ class COutputMap
     float              m_alpha;
     std::vector<float> m_outvalues;
     std::vector<float> m_alphas;
+    int64_t            m_timeout;
+    int64_t            m_lastupdate;
 };
 
 class CUser
@@ -72,7 +78,7 @@ class CUser
     void    AddOutputMap(COutputMap* outputmap);
     void    SignalUpdate();
     virtual void PreOutput() = 0;
-    void    GetOutputMaps(COutputUniverse* universe, std::list<COutputMap*>& outputmaps);
+    void    GetOutputMaps(COutputUniverse* universe, std::list<COutputMap*>& outputmaps, int64_t now);
 
   protected:
     std::list<COutputMap*> m_outputmaps;

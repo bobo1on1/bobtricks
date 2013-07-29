@@ -60,18 +60,21 @@ void CUser::AddOutputMap(COutputMap* outputmap)
 
 void CUser::SignalUpdate()
 {
+  int64_t now = GetTimeUs();
+
   for (list<COutputMap*>::iterator it = m_outputmaps.begin(); it != m_outputmaps.end(); it++)
   {
     LogDebug("Signaling update of output universe \"%s\"", (*it)->m_outputuniverse->Name().c_str());
     (*it)->m_outputuniverse->SetUpdated();
+    (*it)->m_lastupdate = now;
   }
 }
 
-void CUser::GetOutputMaps(COutputUniverse* universe, std::list<COutputMap*>& outputmaps)
+void CUser::GetOutputMaps(COutputUniverse* universe, std::list<COutputMap*>& outputmaps, int64_t now)
 {
   for (list<COutputMap*>::iterator it = m_outputmaps.begin(); it != m_outputmaps.end(); it++)
   {
-    if ((*it)->m_outputuniverse == universe)
+    if ((*it)->m_outputuniverse == universe && ((*it)->m_timeout <= 0 || now - (*it)->m_lastupdate < (*it)->m_timeout))
       outputmaps.push_back(*it);
   }
 }

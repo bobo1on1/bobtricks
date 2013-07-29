@@ -63,14 +63,14 @@ int64_t COutputUniverse::MaxDelay(int64_t now)
   return max((int64_t)0, nextupdate);
 }
 
-void COutputUniverse::GenerateOutput()
+void COutputUniverse::GenerateOutput(int64_t now)
 {
   float outbuf[512] = {};
 
   list<COutputMap*> outputmaps;
 
   for (list<CUser*>::iterator it = m_users.begin(); it != m_users.end(); it++)
-    (*it)->GetOutputMaps(this, outputmaps);
+    (*it)->GetOutputMaps(this, outputmaps, now);
 
   outputmaps.sort(COutputMap::SortByPriority);
 
@@ -86,7 +86,7 @@ Packet* COutputUniverse::ToArtNet(int64_t now)
   for (list<CUser*>::iterator it = m_users.begin(); it != m_users.end(); it++)
     (*it)->PreOutput();
 
-  GenerateOutput();
+  GenerateOutput(now);
 
   m_lasttransmit = now;
   m_updated = false;

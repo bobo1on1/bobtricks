@@ -36,7 +36,7 @@ class COutputUniverse : public CUniverse
 
     void    AddUser(CUser* user);
 
-    void    GenerateOutput();
+    void    GenerateOutput(int64_t now);
 
   private:
     double  m_maxrate;
