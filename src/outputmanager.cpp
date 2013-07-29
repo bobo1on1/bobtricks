@@ -157,10 +157,25 @@ void COutputManager::LoadUniverse(CJSONElement* jsonuniverse, std::string source
     }
   }
 
-  Log("adding output universe \"%s\" with portaddress:%"PRIi64" ipaddress:%s enabled:%s maxrate:%f",
-      name.c_str(), portaddress, itipaddress->second->AsString().c_str(), enabled ? "yes" : "no", maxrate);
+  uint8_t fallback = 42.0;
+  JSONMap::iterator itfallback = universe.find("fallback");
+  if (itfallback != universe.end())
+  {
+    if (!itfallback->second->IsNumber() || itfallback->second->ToInt64() < 0 || itfallback->second->ToInt64() > 255)
+    {
+      LogError("%sinvalid value for fallback: %s", source.c_str(), ToJSON(itfallback->second).c_str());
+      return;
+    }
+    else
+    {
+      fallback = itfallback->second->ToInt64();
+    }
+  }
 
-  m_universes.push_back(new COutputUniverse(name, portaddress, itipaddress->second->AsString(), enabled, maxrate));
+  Log("adding output universe \"%s\" with portaddress:%"PRIi64" ipaddress:%s enabled:%s maxrate:%f fallback:%i",
+      name.c_str(), portaddress, itipaddress->second->AsString().c_str(), enabled ? "yes" : "no", maxrate, fallback);
+
+  m_universes.push_back(new COutputUniverse(name, portaddress, itipaddress->second->AsString(), enabled, maxrate, fallback));
 }
 
 CJSONGenerator* COutputManager::SettingsToJSON(bool tofile)

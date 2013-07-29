@@ -24,13 +24,14 @@
 
 using namespace std;
 
-COutputUniverse::COutputUniverse(const std::string& name, uint16_t portaddress,
-                                 const std::string& ipaddress, bool enabled, double maxrate) :
+COutputUniverse::COutputUniverse(const std::string& name, uint16_t portaddress, const std::string& ipaddress,
+                                 bool enabled, double maxrate, uint8_t fallback) :
   CUniverse(name, portaddress, ipaddress, enabled)
 {
   m_maxrate = maxrate;
   m_updated = true;
   m_lasttransmit = GetTimeUs() - Round64(1000000.0 / maxrate);
+  m_fallback = fallback;
 }
 
 COutputUniverse::~COutputUniverse()

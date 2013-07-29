@@ -26,7 +26,8 @@
 class COutputUniverse : public CUniverse
 {
   public:
-    COutputUniverse(const std::string& name, uint16_t portaddress, const std::string& ipaddress, bool enabled, double maxrate);
+    COutputUniverse(const std::string& name, uint16_t portaddress, const std::string& ipaddress,
+                    bool enabled, double maxrate, uint8_t fallback);
     ~COutputUniverse();
 
     int64_t MaxDelay(int64_t now);
@@ -43,6 +44,7 @@ class COutputUniverse : public CUniverse
     bool    m_updated;
     int64_t m_lasttransmit;
     std::list<CUser*> m_users;
+    uint8_t m_fallback;
 };
 
 #endif //OUTPUTUNIVERSE_H
