@@ -214,7 +214,7 @@ void CInputManager::ParseOutputs(JSONArray& outputs, std::vector<COutputMap*>& o
     if (LoadBool(output, reverse, "reverse", false, source) == Invalid)
       continue;
 
-    int64_t timeout = 5000000;
+    int64_t timeout = 2000000;
     if (LoadInt(output, timeout, "timeout", false, source) == Invalid)
       continue;
 
