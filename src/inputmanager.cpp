@@ -50,6 +50,12 @@ void CInputManager::LoadSettings(JSONMap& root, bool reload, bool fromfile, cons
     return;
   }
 
+  JSONMap::iterator itbroadcast = root.find("broadcast");
+  if (!itbroadcast->second->IsString())
+    LogError("%s: invalid value for broadcast: %s", source.c_str(), ToJSON(itbroadcast->second).c_str());
+  else
+    m_broadcastip = itbroadcast->second->AsString();
+
   for (JSONArray::iterator it = universes->second->AsArray().begin(); it != universes->second->AsArray().end(); it++)
     LoadUniverse(*it, source + ": ");
 }
@@ -335,6 +341,41 @@ CJSONGenerator* CInputManager::SettingsToJSON(bool tofile)
 
 void CInputManager::ParsePacket(Packet* packet)
 {
+  if (packet->data.size() < sizeof(SArtNetPacket))
+  {
+    LogDebug("received too small artnet packet of size %i", (int)packet->data.size());
+    return;
+  }
+
+  if (packet->port == 6454)
+  {
+    for (list<CInputUniverse*>::iterator it = m_universes.begin(); it != m_universes.end(); it++)
+    {
+      if ((*it)->IpAddress() == packet->source)
+      {
+        LogDebug("ignoring packet from own interface");
+        return; //hack, ignore broadcast packets from own ip addresses
+      }
+    }
+  }
+
+  SArtNetPacket* artnetpacket = (SArtNetPacket*)&packet->data[0];
+  if (strcmp((char*)artnetpacket->ID, "Art-Net") != 0)
+  {
+    LogDebug("packet has invalid header");
+    return;
+  }
+
+  if (artnetpacket->OpCode == OpOutput)
+    ParseArtDmx(packet);
+  else if (artnetpacket->OpCode == OpPoll)
+    ParseArtPoll(packet);
+  else
+    LogDebug("packet has opcode %i, will not be handled", artnetpacket->OpCode);
+}
+
+void CInputManager::ParseArtDmx(Packet* packet)
+{
   if (packet->data.size() < sizeof(SArtDmx))
   {
     LogDebug("received too small artnet packet of size %i", (int)packet->data.size());
@@ -342,17 +383,6 @@ void CInputManager::ParsePacket(Packet* packet)
   }
 
   SArtDmx* dmxptr = (SArtDmx*)&packet->data[0];
-  if (strcmp((char*)dmxptr->ID, "Art-Net") != 0)
-  {
-    LogDebug("packet has invalid header");
-    return;
-  }
-
-  if (dmxptr->OpCode != OpOutput)
-  {
-    LogDebug("packet has opcode %i, will not be handled", dmxptr->OpCode);
-    return;
-  }
 
   uint16_t portaddress = dmxptr->SubUni | (((uint16_t)dmxptr->Net) << 8);
 
@@ -367,5 +397,28 @@ void CInputManager::ParsePacket(Packet* packet)
       packet->destination.c_str(), portaddress, universe->Name().c_str());
 
   universe->FromArtNet(packet);
+}
+
+void CInputManager::ParseArtPoll(Packet* packet)
+{
+  LogDebug("Received artpoll from %s:%i", packet->source.c_str(), packet->port);
+
+  if (packet->data.size() < sizeof(SArtPoll))
+  {
+    LogDebug("received too small artnet packet of size %i", (int)packet->data.size());
+    return;
+  }
+
+  m_pollrequests.push_back(CPollRequest(packet->source, GetTimeUs()));
+
+  packet->destination = m_broadcastip;
+  packet->port = 6454;
+
+  Packet* outpacket = new Packet;
+  *outpacket = *packet;
+  
+  LogDebug("Sending artpoll to %s", m_broadcastip.c_str());
+
+  m_bobtricks.QueueTransmit(outpacket);
 }
 

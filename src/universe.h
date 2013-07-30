@@ -61,6 +61,12 @@ enum Opcode
   OpDirectoryReply = 0x9b00, //Replies to OpDirectory with file list
 };
 
+struct SArtNetPacket
+{
+  uint8_t  ID[8];
+  uint16_t OpCode;
+} __attribute__((packed));
+
 struct SArtDmx
 {
   uint8_t  ID[8];
@@ -74,6 +80,25 @@ struct SArtDmx
   uint8_t  LengthHi;
   uint8_t  Length;
   uint8_t  Data[];
+} __attribute__((packed));
+
+struct STalkToMe
+{
+  uint8_t unused1 : 4;
+  uint8_t Unicast : 1;
+  uint8_t SendDiag : 1;
+  uint8_t SendPollOnChange : 1;
+  uint8_t unused2 : 1;
+} __attribute__((packed));
+
+struct SArtPoll
+{
+  uint8_t   ID[8];
+  uint16_t  OpCode;
+  uint8_t   ProtVerHi;
+  uint8_t   ProtVerLow;
+  STalkToMe TalkToMe;
+  uint8_t   Priority;
 } __attribute__((packed));
 
 class CUniverse

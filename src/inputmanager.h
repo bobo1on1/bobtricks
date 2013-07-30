@@ -56,9 +56,28 @@ class CInputManager : public CJSONSettings
     ParseResult     LoadInt(JSONMap& jsonmap, int64_t& value, const std::string& name, bool mandatory, const std::string& source);
     ParseResult     LoadBool(JSONMap& jsonmap, bool& value, const std::string& name, bool mandatory, const std::string& source);
 
+    void            ParseArtDmx(Packet* packet);
+    void            ParseArtPoll(Packet* packet);
+
     CBobTricks&     m_bobtricks;
     CMutex          m_mutex;
     std::list<CInputUniverse*> m_universes;
+
+    class CPollRequest
+    {
+      public:
+        CPollRequest(std::string argip, int64_t argtime)
+        {
+          ip = argip;
+          time = argtime;
+        }
+
+        std::string ip;
+        int64_t time;
+    };
+
+    std::list<CPollRequest> m_pollrequests;
+    std::string             m_broadcastip;
 };
 
 #endif //INPUTMANAGER_H

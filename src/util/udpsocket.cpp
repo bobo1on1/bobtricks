@@ -50,6 +50,14 @@ bool CUdpSocket::Open(uint16_t port)
 
   LogDebug("created udp socket");
 
+  int val = 1;
+  if (setsockopt(m_sock, SOL_SOCKET, SO_BROADCAST, &val, sizeof(val)) == -1)
+  {
+    LogError("setsocksopt(): %i:%s", errno, GetErrno().c_str());
+    Close();
+    return false;
+  }
+
   sockaddr_in bindaddr = {};
   bindaddr.sin_family=AF_INET;
   bindaddr.sin_addr.s_addr=INADDR_ANY;
@@ -64,7 +72,6 @@ bool CUdpSocket::Open(uint16_t port)
 
   LogDebug("socket bound to port %i", port);
 
-  int val = 1;
   if (setsockopt(m_sock, IPPROTO_IP, IP_PKTINFO, &val, sizeof(val)) == -1)
   {
     LogError("setsocksopt(): %i:%s", errno, GetErrno().c_str());
@@ -219,8 +226,12 @@ bool CUdpSocket::SendMessage(std::vector<uint8_t>& data, std::string& destinatio
       LogError("sendto() %i:%s", errno, GetErrno().c_str());
       if (errno != EINTR)
         Close();
+      return true;
     }
-    return false;
+    else
+    {
+      return false;
+    }
   }
 
   return true;
