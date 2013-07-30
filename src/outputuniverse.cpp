@@ -75,11 +75,19 @@ void COutputUniverse::GenerateOutput(int64_t now)
 
   outputmaps.sort(COutputMap::SortByPriority);
 
-  for (list<COutputMap*>::iterator it = outputmaps.begin(); it != outputmaps.end(); it++)
-    (*it)->FillBuffer(outbuf);
+  if (outputmaps.size() > 0)
+  {
+    for (list<COutputMap*>::iterator it = outputmaps.begin(); it != outputmaps.end(); it++)
+      (*it)->FillBuffer(outbuf);
 
-  for (int i = 0; i < 512; i++)
-    m_channels[i] = Clamp(Round32(outbuf[i] * 255.0f), (int32_t)0, (int32_t)255);
+    for (int i = 0; i < 512; i++)
+      m_channels[i] = Clamp(Round32(outbuf[i] * 255.0f), (int32_t)0, (int32_t)255);
+  }
+  else
+  {
+    memset(m_channels, m_fallback, sizeof(m_channels));
+  }
+
 }
 
 Packet* COutputUniverse::ToArtNet(int64_t now)
