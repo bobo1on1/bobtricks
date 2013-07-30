@@ -22,6 +22,7 @@
 #include "universe.h"
 #include "user.h"
 #include "util/udpsocket.h"
+#include <string>
 
 class COutputUniverse;
 
@@ -39,6 +40,9 @@ class CInputUniverse : public CUniverse, public CUser
 
     std::string m_output;
     bool        m_updated;
+    std::string m_lastinputip;
+    int64_t     m_lastinputtime;
+    uint16_t    m_lastinputport;
 };
 
 #endif //INPUTUNIVERSE_H

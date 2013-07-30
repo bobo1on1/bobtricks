@@ -20,6 +20,10 @@
 #include "outputuniverse.h"
 #include <string.h>
 #include <algorithm>
+#include "util/timeutils.h"
+#include "util/log.h"
+
+#define INPUTTIMEOUT 1000000
 
 using namespace std;
 
@@ -27,6 +31,8 @@ CInputUniverse::CInputUniverse(const std::string& name, uint16_t portaddress, co
   CUniverse(name, portaddress, ipaddress, enabled)
 {
   m_updated = false;
+  m_lastinputtime = GetTimeUs() - INPUTTIMEOUT;
+  m_lastinputport = 0;
 }
 
 CInputUniverse::~CInputUniverse()
@@ -35,6 +41,17 @@ CInputUniverse::~CInputUniverse()
 
 bool CInputUniverse::FromArtNet(Packet* packet)
 {
+  int64_t now = GetTimeUs();
+
+  if (now - m_lastinputtime < INPUTTIMEOUT && (m_lastinputport != packet->port || m_lastinputip != packet->source))
+    return false;
+
+  LogDebug("ip:%s port:%i delay:%"PRIi64, packet->source.c_str(), packet->port, now - m_lastinputtime);
+
+  m_lastinputtime = now;
+  m_lastinputip = packet->source;
+  m_lastinputport = packet->port;
+
   SArtDmx* dmxptr = (SArtDmx*)&packet->data[0];
 
   int nrchannels = ((int)dmxptr->LengthHi << 8) | dmxptr->Length;
