@@ -428,7 +428,7 @@ void CInputManager::ParseArtPoll(Packet* packet)
     return;
   }
 
-  m_pollrequests.push_back(CPollRequest(packet->source, GetTimeUs()));
+  m_pollrequests.push_back(CPollRequest(packet->source, packet->port, GetTimeUs()));
 
   packet->destination = m_broadcastip;
   packet->port = 6454;
@@ -455,6 +455,7 @@ void CInputManager::ParseArtPollReply(Packet* packet)
       Packet* outpacket = new Packet;
       *outpacket = *packet;
       outpacket->destination = it->ip;
+      outpacket->port = it->port;
       LogDebug("Sending artpollreply back to %s", it->ip.c_str());
       m_bobtricks.QueueTransmit(outpacket);
     }

@@ -68,13 +68,15 @@ class CInputManager : public CJSONSettings
     class CPollRequest
     {
       public:
-        CPollRequest(std::string argip, int64_t argtime)
+        CPollRequest(std::string argip, uint16_t argport, int64_t argtime)
         {
           ip = argip;
           time = argtime;
+          argport = port;
         }
 
         std::string ip;
+        uint16_t port;
         int64_t time;
     };
 
