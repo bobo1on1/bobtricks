@@ -35,14 +35,14 @@ void COutputMap::FillBuffer(float* outbuf)
   float* outptr = outbuf + m_outstart;
   float* outend = outptr + nrchannels;
   float* inptr = &m_outvalues[0];
-  float* alphaptr = &m_alphas[0];
+  //float* alphaptr = &m_alphas[0];
 
   if (!m_usehighest)
   {
     while (outptr != outend)
     {
-      float alpha = *(alphaptr++) * m_alpha;
-      *outptr = *outptr * (1.0f - alpha) + *inptr * alpha;
+      //float alpha = *(alphaptr++) * m_alpha;
+      *outptr = *outptr * (1.0f - m_alpha) + *inptr * m_alpha;
       outptr++;
       inptr++;
     }
