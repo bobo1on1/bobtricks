@@ -51,10 +51,22 @@ void CInputManager::LoadSettings(JSONMap& root, bool reload, bool fromfile, cons
   }
 
   JSONMap::iterator itbroadcast = root.find("broadcast");
-  if (!itbroadcast->second->IsString())
-    LogError("%s: invalid value for broadcast: %s", source.c_str(), ToJSON(itbroadcast->second).c_str());
-  else
-    m_broadcastip = itbroadcast->second->AsString();
+  if (itbroadcast != root.end())
+  {
+    if (!itbroadcast->second->IsString())
+      LogError("%s: invalid value for broadcast: %s", source.c_str(), ToJSON(itbroadcast->second).c_str());
+    else
+      m_broadcastip = itbroadcast->second->AsString();
+  }
+
+  JSONMap::iterator itignore = root.find("ignore");
+  if (itignore != root.end())
+  {
+    if (!itignore->second->IsString())
+      LogError("%s: invalid value for ignore: %s", source.c_str(), ToJSON(itignore->second).c_str());
+    else
+      m_broadcastignore = itignore->second->AsString();
+  }
 
   for (JSONArray::iterator it = universes->second->AsArray().begin(); it != universes->second->AsArray().end(); it++)
     LoadUniverse(*it, source + ": ");
@@ -408,6 +420,11 @@ void CInputManager::ParseArtPoll(Packet* packet)
   if (packet->data.size() < sizeof(SArtPoll))
   {
     LogDebug("received too small artnet packet of size %i", (int)packet->data.size());
+    return;
+  }
+  else if (packet->source == m_broadcastignore)
+  {
+    LogDebug("ignoring artpoll from %s", packet->source.c_str());
     return;
   }
 

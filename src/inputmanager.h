@@ -80,6 +80,7 @@ class CInputManager : public CJSONSettings
 
     std::list<CPollRequest> m_pollrequests;
     std::string             m_broadcastip;
+    std::string             m_broadcastignore;
 };
 
 #endif //INPUTMANAGER_H
