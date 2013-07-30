@@ -50,7 +50,7 @@ class COutputMap
         m_alphas[i] = 1.0f;
       }
 
-      m_lastupdate = GetTimeUs();
+      m_lastupdate = GetTimeUs() - m_timeout;
     }
 
     static bool        SortByPriority(COutputMap* first, COutputMap* second) { return first->m_priority < second->m_priority; }
