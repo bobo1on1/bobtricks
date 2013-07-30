@@ -177,6 +177,7 @@ void CBobTricks::Process()
     ProcessInputQueue();
 
     m_outputmanager.Process();
+    m_inputmanager.Process();
   }
 }
 

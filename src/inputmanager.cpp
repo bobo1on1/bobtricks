@@ -370,6 +370,8 @@ void CInputManager::ParsePacket(Packet* packet)
     ParseArtDmx(packet);
   else if (artnetpacket->OpCode == OpPoll)
     ParseArtPoll(packet);
+  else if (artnetpacket->OpCode == OpPollReply)
+    ParseArtPollReply(packet);
   else
     LogDebug("packet has opcode %i, will not be handled", artnetpacket->OpCode);
 }
@@ -420,5 +422,38 @@ void CInputManager::ParseArtPoll(Packet* packet)
   LogDebug("Sending artpoll to %s", m_broadcastip.c_str());
 
   m_bobtricks.QueueTransmit(outpacket);
+}
+
+#define POLLREPLYTIMEOUT 3000000
+
+void CInputManager::ParseArtPollReply(Packet* packet)
+{
+  LogDebug("received artpollreply from %s", packet->source.c_str());
+
+  int64_t now = GetTimeUs();
+  for (list<CPollRequest>::iterator it = m_pollrequests.begin(); it != m_pollrequests.end(); it++)
+  {
+    if (now - it->time < POLLREPLYTIMEOUT)
+    {
+      Packet* outpacket = new Packet;
+      *outpacket = *packet;
+      outpacket->destination = it->ip;
+      LogDebug("Sending artpollreply back to %s", it->ip.c_str());
+      m_bobtricks.QueueTransmit(outpacket);
+    }
+  }
+}
+
+void CInputManager::Process()
+{
+  int64_t now = GetTimeUs();
+  list<CPollRequest>::iterator it = m_pollrequests.begin();
+  while (it != m_pollrequests.end())
+  {
+    if (now - it->time > POLLREPLYTIMEOUT)
+      it = m_pollrequests.erase(it);
+    else
+      it++;
+  }
 }
 

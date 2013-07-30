@@ -36,6 +36,7 @@ class CInputManager : public CJSONSettings
 
     void            LoadSettings(JSONMap& root, bool reload, bool fromfile, const std::string& source);
     void            ParsePacket(Packet* packet);
+    void            Process();
 
   private:
     void            LoadUniverse(CJSONElement* jsonuniverse, std::string source);
@@ -58,6 +59,7 @@ class CInputManager : public CJSONSettings
 
     void            ParseArtDmx(Packet* packet);
     void            ParseArtPoll(Packet* packet);
+    void            ParseArtPollReply(Packet* packet);
 
     CBobTricks&     m_bobtricks;
     CMutex          m_mutex;
