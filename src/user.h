@@ -30,7 +30,7 @@ class CUser;
 class COutputMap
 {
   public:
-    COutputMap(COutputUniverse* outputuniverse, int priority, int instart, int outstart, int nrchannels, bool reverse, float alpha, int64_t timeout)
+    COutputMap(COutputUniverse* outputuniverse, int priority, int instart, int outstart, int nrchannels, bool reverse, float alpha, int64_t timeout, bool usehighest)
     {
       m_outputuniverse = outputuniverse;
       m_priority = priority;
@@ -40,6 +40,7 @@ class COutputMap
       m_reverse = reverse;
       m_alpha = alpha;
       m_timeout = timeout;
+      m_usehighest = usehighest;
 
       m_outvalues.resize(m_nrchannels);
       m_alphas.resize(m_nrchannels);
@@ -67,6 +68,7 @@ class COutputMap
     std::vector<float> m_alphas;
     int64_t            m_timeout;
     int64_t            m_lastupdate;
+    bool               m_usehighest;
 };
 
 class CUser

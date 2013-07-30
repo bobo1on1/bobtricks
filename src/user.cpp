@@ -19,6 +19,7 @@
 #include "user.h"
 #include "outputuniverse.h"
 #include "util/log.h"
+#include <algorithm>
 
 using namespace std;
 
@@ -36,12 +37,24 @@ void COutputMap::FillBuffer(float* outbuf)
   float* inptr = &m_outvalues[0];
   float* alphaptr = &m_alphas[0];
 
-  while (outptr != outend)
+  if (!m_usehighest)
   {
-    float alpha = *(alphaptr++) * m_alpha;
-    *outptr = *outptr * (1.0f - alpha) + *inptr * alpha;
-    outptr++;
-    inptr++;
+    while (outptr != outend)
+    {
+      float alpha = *(alphaptr++) * m_alpha;
+      *outptr = *outptr * (1.0f - alpha) + *inptr * alpha;
+      outptr++;
+      inptr++;
+    }
+  }
+  else
+  {
+    while (outptr != outend)
+    {
+      *outptr = max(*inptr, *outptr);
+      outptr++;
+      inptr++;
+    }
   }
 }
 

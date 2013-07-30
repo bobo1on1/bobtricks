@@ -218,6 +218,10 @@ void CInputManager::ParseOutputs(JSONArray& outputs, std::vector<COutputMap*>& o
     if (LoadInt(output, timeout, "timeout", false, source) == Invalid)
       continue;
 
+    bool usehighest = false;
+    if (LoadBool(output, usehighest, "usehighest", false, source) == Invalid)
+      continue;
+
     string& universestr = ituniverse->second->AsString();
     COutputUniverse* outputuniverse = m_bobtricks.OutputManager().FindUniverse(universestr);
     if (outputuniverse == NULL)
@@ -230,7 +234,8 @@ void CInputManager::ParseOutputs(JSONArray& outputs, std::vector<COutputMap*>& o
         "priority:%"PRIi64" instart:%"PRIi64" outstart:%"PRIi64" channels:%"PRIi64" reverse:%s alpha:%f timeout%"PRIi64,
         inputname.c_str(), universestr.c_str(), priority, instart, outstart, channels, reverse ? "yes" : "no", alpha, timeout);
 
-    COutputMap* outputmap = new COutputMap(outputuniverse, priority, instart, outstart, channels, reverse, alpha, timeout);
+    COutputMap* outputmap = new COutputMap(outputuniverse, priority, instart, outstart,
+                                           channels, reverse, alpha, timeout, usehighest);
     outputmaps.push_back(outputmap);
   }
 }
