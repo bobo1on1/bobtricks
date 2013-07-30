@@ -86,11 +86,14 @@ void CInputUniverse::ProcessOutputMap(COutputMap& outputmap)
   }
   else
   {
-    uint8_t* in = m_channels + outputmap.m_instart + nrchannels - 1;
-    uint8_t* inend = in - nrchannels;
-
-    while (in != inend)
-      *(out++) = ((float)*(in--)) * (1.0f / 255.0f);
+    int intop = outputmap.m_instart + nrchannels - 1;
+    int inbottom = outputmap.m_instart;
+    for (int i = intop; i >= inbottom + 2; i -= 3)
+    {
+      *(out++) = ((float)(m_channels[i - 2])) * (1.0f / 255.0f);
+      *(out++) = ((float)(m_channels[i - 1])) * (1.0f / 255.0f);
+      *(out++) = ((float)(m_channels[i])) * (1.0f / 255.0f);
+    }
   }
 }
 
