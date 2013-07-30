@@ -72,7 +72,7 @@ class CInputManager : public CJSONSettings
         {
           ip = argip;
           time = argtime;
-          argport = port;
+          port = argport;
         }
 
         std::string ip;
