@@ -20,6 +20,7 @@
 #include "outputuniverse.h"
 #include "util/log.h"
 #include <algorithm>
+#include <string.h>
 
 using namespace std;
 
@@ -39,8 +40,7 @@ void COutputMap::FillBuffer(uint8_t* outbuf)
 
   if (!m_usehighest)
   {
-    while (outptr != outend)
-      *(outptr++) = *(inptr++);
+    memcpy(outptr, inptr, nrchannels);
   }
   else
   {
