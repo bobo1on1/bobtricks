@@ -106,7 +106,7 @@ void CBobTricks::Process()
 
     int64_t maxdelay = m_outputmanager.MaxDelay();
     timeval timeout = {};
-    if (m_socket.IsOpen())
+    if (m_socket.IsOpen() && maxdelay >= 0)
     {
       timeout.tv_sec = maxdelay / 1000000;
       timeout.tv_usec = maxdelay % 1000000;
@@ -117,7 +117,7 @@ void CBobTricks::Process()
       timeout.tv_usec = 1000000;
     }
 
-    int returnv = select(maxfds, &readset, &writeset, NULL, maxdelay != -1 || !m_socket.IsOpen() ? &timeout : NULL);
+    int returnv = select(maxfds, &readset, &writeset, NULL, &timeout);
     if (returnv == -1)
     {
       LogError("select() %i:%s", errno, GetErrno().c_str());

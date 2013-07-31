@@ -58,6 +58,9 @@ int64_t COutputUniverse::MaxDelay(int64_t now)
   if (!m_enabled)
     return -1;
 
+  if (now - m_presenttime > POLLINTERVAL + 3500000)
+    return -1;
+
   int64_t nextupdate;
   if (m_updated)
     nextupdate = m_lasttransmit + Round64(1000000.0 / m_maxrate) - now;
