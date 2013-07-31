@@ -72,9 +72,9 @@ int64_t COutputUniverse::MaxDelay(int64_t now)
 
 void COutputUniverse::GenerateOutput(int64_t now)
 {
-  float outbuf[512] = {};
-
   list<COutputMap*> outputmaps;
+
+  memset(m_channels, 0, sizeof(m_channels));
 
   for (list<CUser*>::iterator it = m_users.begin(); it != m_users.end(); it++)
     (*it)->GetOutputMaps(this, outputmaps, now);
@@ -84,10 +84,7 @@ void COutputUniverse::GenerateOutput(int64_t now)
   if (outputmaps.size() > 0)
   {
     for (list<COutputMap*>::iterator it = outputmaps.begin(); it != outputmaps.end(); it++)
-      (*it)->FillBuffer(outbuf);
-
-    for (int i = 0; i < 512; i++)
-      m_channels[i] = Clamp(Round32(outbuf[i] * 255.0f), (int32_t)0, (int32_t)255);
+      (*it)->FillBuffer(m_channels);
   }
   else
   {

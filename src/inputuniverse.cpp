@@ -91,7 +91,7 @@ void CInputUniverse::ProcessOutputMap(COutputMap& outputmap)
   if (outputmap.m_instart + nrchannels > 512)
     nrchannels = 512 - outputmap.m_instart;
 
-  float* out = &outputmap.m_outvalues[0];
+  uint8_t* out = &outputmap.m_outvalues[0];
 
   if (!outputmap.m_reverse)
   {
@@ -99,7 +99,7 @@ void CInputUniverse::ProcessOutputMap(COutputMap& outputmap)
     uint8_t* inend = in + nrchannels;
 
     while (in != inend)
-      *(out++) = ((float)*(in++)) * (1.0f / 255.0f);
+      *(out++) = *(in++);
   }
   else
   {
@@ -107,9 +107,9 @@ void CInputUniverse::ProcessOutputMap(COutputMap& outputmap)
     int inbottom = outputmap.m_instart;
     for (int i = intop; i >= inbottom + 2; i -= 3)
     {
-      *(out++) = ((float)(m_channels[i - 2])) * (1.0f / 255.0f);
-      *(out++) = ((float)(m_channels[i - 1])) * (1.0f / 255.0f);
-      *(out++) = ((float)(m_channels[i])) * (1.0f / 255.0f);
+      *(out++) = m_channels[i - 2];
+      *(out++) = m_channels[i - 1];
+      *(out++) = m_channels[i];
     }
   }
 }

@@ -23,7 +23,7 @@
 
 using namespace std;
 
-void COutputMap::FillBuffer(float* outbuf)
+void COutputMap::FillBuffer(uint8_t* outbuf)
 {
   if (m_outstart < 0 || m_outstart > 511)
     return;
@@ -32,20 +32,15 @@ void COutputMap::FillBuffer(float* outbuf)
   if (m_outstart + nrchannels > 512)
     nrchannels = 512 - m_outstart;
 
-  float* outptr = outbuf + m_outstart;
-  float* outend = outptr + nrchannels;
-  float* inptr = &m_outvalues[0];
+  uint8_t* outptr = outbuf + m_outstart;
+  uint8_t* outend = outptr + nrchannels;
+  uint8_t* inptr = &m_outvalues[0];
   //float* alphaptr = &m_alphas[0];
 
   if (!m_usehighest)
   {
     while (outptr != outend)
-    {
-      //float alpha = *(alphaptr++) * m_alpha;
-      *outptr = *outptr * (1.0f - m_alpha) + *inptr * m_alpha;
-      outptr++;
-      inptr++;
-    }
+      *(outptr++) = *(inptr++);
   }
   else
   {
