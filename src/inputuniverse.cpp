@@ -96,10 +96,7 @@ void CInputUniverse::ProcessOutputMap(COutputMap& outputmap)
   if (!outputmap.m_reverse)
   {
     uint8_t* in = m_channels + outputmap.m_instart;
-    uint8_t* inend = in + nrchannels;
-
-    while (in != inend)
-      *(out++) = *(in++);
+    memcpy(out, in, nrchannels);
   }
   else
   {
