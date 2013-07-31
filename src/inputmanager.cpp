@@ -30,6 +30,7 @@ CInputManager::CInputManager(CBobTricks& bobtricks) :
   CJSONSettings(SETTINGSFILE, "inputmanager", m_mutex),
   m_bobtricks(bobtricks)
 {
+  m_lastpolltime = GetTimeUs() - POLLINTERVAL;
 }
 
 CInputManager::~CInputManager()
@@ -460,6 +461,8 @@ void CInputManager::ParseArtPollReply(Packet* packet)
       m_bobtricks.QueueTransmit(outpacket);
     }
   }
+
+  m_bobtricks.OutputManager().ProcessArtPollReply(packet);
 }
 
 void CInputManager::Process()
@@ -473,5 +476,30 @@ void CInputManager::Process()
     else
       it++;
   }
+
+  if (now - m_lastpolltime > POLLINTERVAL)
+  {
+    SendArtPoll();
+    m_lastpolltime = now;
+  }
+}
+
+void CInputManager::SendArtPoll()
+{
+  Packet* packet = new Packet;
+
+  packet->port = 6454;
+  packet->destination = m_broadcastip;
+  packet->data.resize(sizeof(SArtPoll));
+
+  SArtPoll* artpoll = (SArtPoll*)&packet->data[0];
+  strcpy((char*)artpoll->ID, "Art-Net");
+  artpoll->OpCode = OpPoll;
+  artpoll->ProtVerHi = 0;
+  artpoll->ProtVerLow = 14;
+  memset(&artpoll->TalkToMe, 0, sizeof(artpoll->TalkToMe));
+  artpoll->Priority = 0;
+
+  m_bobtricks.QueueTransmit(packet);
 }
 

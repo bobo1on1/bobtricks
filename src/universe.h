@@ -23,6 +23,8 @@
 #include <string>
 #include <list>
 
+#define POLLINTERVAL 10000000
+
 enum Opcode
 {
   OpPoll = 0x2000, //This is an ArtPoll packet, no other data is contained in this UDP packet.

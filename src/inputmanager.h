@@ -61,6 +61,8 @@ class CInputManager : public CJSONSettings
     void            ParseArtPoll(Packet* packet);
     void            ParseArtPollReply(Packet* packet);
 
+    void            SendArtPoll();
+
     CBobTricks&     m_bobtricks;
     CMutex          m_mutex;
     std::list<CInputUniverse*> m_universes;
@@ -83,6 +85,8 @@ class CInputManager : public CJSONSettings
     std::list<CPollRequest> m_pollrequests;
     std::string             m_broadcastip;
     std::string             m_broadcastignore;
+
+    int64_t                 m_lastpolltime;
 };
 
 #endif //INPUTMANAGER_H

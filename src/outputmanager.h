@@ -40,6 +40,8 @@ class COutputManager : public CJSONSettings
     void             LoadSettings(JSONMap& root, bool reload, bool fromfile, const std::string& source);
     COutputUniverse* FindUniverse(const std::string& name);
 
+    void             ProcessArtPollReply(Packet* packet);
+
   private:
     void             LoadUniverse(CJSONElement* jsonuniverse, std::string source);
     CJSONGenerator*  SettingsToJSON(bool tofile);

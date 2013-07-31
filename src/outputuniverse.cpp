@@ -47,6 +47,9 @@ void COutputUniverse::AddUser(CUser* user)
 
 bool COutputUniverse::NeedsTransmit(int64_t now)
 {
+  if (now - m_presenttime > POLLINTERVAL + 3500000)
+    return false;
+
   return m_enabled && ((m_updated && now - m_lasttransmit >= Round64(1000000.0 / m_maxrate)) || now - m_lasttransmit >= 1000000);
 }
 
@@ -123,5 +126,11 @@ Packet* COutputUniverse::ToArtNet(int64_t now)
   LogDebug("sending art-net packet to ipaddress:\"%s\" portaddress:%i", packet->destination.c_str(), m_portaddress);
 
   return packet;
+}
+
+void COutputUniverse::MarkPresent(int64_t now)
+{
+  LogDebug("marking universe \"%s\" ip:%s as present", m_name.c_str(), m_ipaddress.c_str());
+  m_presenttime = now;
 }
 

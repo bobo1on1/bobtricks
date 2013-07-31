@@ -39,12 +39,15 @@ class COutputUniverse : public CUniverse
 
     void    GenerateOutput(int64_t now);
 
+    void    MarkPresent(int64_t now);
+
   private:
     double  m_maxrate;
     bool    m_updated;
     int64_t m_lasttransmit;
     std::list<CUser*> m_users;
     uint8_t m_fallback;
+    int64_t m_presenttime;
 };
 
 #endif //OUTPUTUNIVERSE_H

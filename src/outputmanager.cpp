@@ -208,3 +208,15 @@ int64_t COutputManager::MaxDelay()
   return maxdelay;
 }
 
+void COutputManager::ProcessArtPollReply(Packet* packet)
+{
+  for (list<COutputUniverse*>::iterator it = m_universes.begin(); it != m_universes.end(); it++)
+  {
+    if ((*it)->IpAddress() == packet->source)
+    {
+      (*it)->MarkPresent(GetTimeUs());
+      break;
+    }
+  }
+}
+
