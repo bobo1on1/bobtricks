@@ -35,7 +35,7 @@ COutputUniverse::COutputUniverse(const std::string& name, uint16_t portaddress, 
   m_lasttransmit = GetTimeUs() - Round64(1000000.0 / maxrate);
   m_fallback = fallback;
   m_process = false;
-  m_presenttime = GetTimeUs() - (POLLINTERVAL - ARTPOLLREPLYTIMEOUT) * 2;
+  m_presenttime = GetTimeUs() - (POLLINTERVAL + ARTPOLLREPLYTIMEOUT) * 2;
   m_waspresent = false;
 }
 
