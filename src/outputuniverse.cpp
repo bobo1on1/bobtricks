@@ -33,6 +33,8 @@ COutputUniverse::COutputUniverse(const std::string& name, uint16_t portaddress, 
   m_lasttransmit = GetTimeUs() - Round64(1000000.0 / maxrate);
   m_fallback = fallback;
   m_process = false;
+  m_presenttime = GetTimeUs() - POLLINTERVAL;
+  m_waspresent = false;
 }
 
 COutputUniverse::~COutputUniverse()
@@ -48,8 +50,15 @@ void COutputUniverse::AddUser(CUser* user)
 
 bool COutputUniverse::NeedsTransmit(int64_t now)
 {
-  if (now - m_presenttime > POLLINTERVAL + 3500000)
+  if (!IsPresent(now))
+  {
+    if (m_waspresent)
+    {
+      Log("WARNING: universe \"%s\" ip:%s has disappeared", m_name.c_str(), m_ipaddress.c_str());
+      m_waspresent = false;
+    }
     return false;
+  }
 
   return m_enabled && ((m_updated && now - m_lasttransmit >= Round64(1000000.0 / m_maxrate)) || now - m_lasttransmit >= 1000000);
 }
@@ -59,7 +68,7 @@ int64_t COutputUniverse::MaxDelay(int64_t now)
   if (!m_enabled)
     return -1;
 
-  if (now - m_presenttime > POLLINTERVAL + 3500000)
+  if (!IsPresent(now))
     return -1;
 
   int64_t nextupdate;
@@ -131,7 +140,17 @@ Packet* COutputUniverse::ToArtNet(int64_t now)
 
 void COutputUniverse::MarkPresent(int64_t now)
 {
-  LogDebug("marking universe \"%s\" ip:%s as present", m_name.c_str(), m_ipaddress.c_str());
+  if (!IsPresent(now))
+  {
+    Log("marking universe \"%s\" ip:%s as present", m_name.c_str(), m_ipaddress.c_str());
+    m_waspresent = true;
+  }
+
   m_presenttime = now;
+}
+
+bool COutputUniverse::IsPresent(int64_t now)
+{
+  return now - m_presenttime <= POLLINTERVAL + 3500000;
 }
 

@@ -44,6 +44,7 @@ class COutputUniverse : public CUniverse
 
     void    MarkProcess() { m_process = 1; }
     bool    NeedProcess() { return MsgCAS(&m_process, 1, 0); }
+    bool    IsPresent(int64_t now);
 
   private:
     double  m_maxrate;
@@ -52,6 +53,7 @@ class COutputUniverse : public CUniverse
     std::list<CUser*> m_users;
     uint8_t m_fallback;
     int64_t m_presenttime;
+    bool    m_waspresent;
     atom    m_process;
 };
 
