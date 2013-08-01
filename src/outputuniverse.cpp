@@ -22,6 +22,8 @@
 #include "util/log.h"
 #include <algorithm>
 
+#define ARTPOLLREPLYTIMEOUT 3500000
+
 using namespace std;
 
 COutputUniverse::COutputUniverse(const std::string& name, uint16_t portaddress, const std::string& ipaddress,
@@ -33,7 +35,7 @@ COutputUniverse::COutputUniverse(const std::string& name, uint16_t portaddress, 
   m_lasttransmit = GetTimeUs() - Round64(1000000.0 / maxrate);
   m_fallback = fallback;
   m_process = false;
-  m_presenttime = GetTimeUs() - POLLINTERVAL;
+  m_presenttime = GetTimeUs() - (POLLINTERVAL - ARTPOLLREPLYTIMEOUT) * 2;
   m_waspresent = false;
 }
 
@@ -151,6 +153,6 @@ void COutputUniverse::MarkPresent(int64_t now)
 
 bool COutputUniverse::IsPresent(int64_t now)
 {
-  return now - m_presenttime <= POLLINTERVAL + 3500000;
+  return now - m_presenttime <= POLLINTERVAL + ARTPOLLREPLYTIMEOUT;
 }
 
