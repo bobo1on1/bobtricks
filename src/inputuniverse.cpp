@@ -22,6 +22,7 @@
 #include <algorithm>
 #include "util/timeutils.h"
 #include "util/log.h"
+#include "util/lock.h"
 
 #define INPUTTIMEOUT 1000000
 
@@ -73,6 +74,7 @@ bool CInputUniverse::FromArtNet(Packet* packet)
 
 void CInputUniverse::PreOutput()
 {
+  CLock lock(m_mutex);
   if (m_updated)
   {
     for (list<COutputMap*>::iterator it = m_outputmaps.begin(); it != m_outputmaps.end(); it++)

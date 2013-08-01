@@ -23,6 +23,7 @@
 #include <list>
 #include <string>
 #include "util/timeutils.h"
+#include "util/mutex.h"
 
 class COutputUniverse;
 class CUser;
@@ -81,6 +82,7 @@ class CUser
 
   protected:
     std::list<COutputMap*> m_outputmaps;
+    CMutex m_mutex;
 };
 
 #endif //USER_H

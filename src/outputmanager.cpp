@@ -20,6 +20,7 @@
 #include "bobtricks.h"
 #include "util/log.h"
 #include "util/timeutils.h"
+#include "util/lock.h"
 
 #define SETTINGSFILE ".bobtricks/outputs.json"
 
@@ -29,6 +30,7 @@ COutputManager::COutputManager(CBobTricks& bobtricks) :
   CJSONSettings(SETTINGSFILE, "outputmanager", m_mutex),
   m_bobtricks(bobtricks)
 {
+  m_threadprocess = false;
 }
 
 COutputManager::~COutputManager()
@@ -183,14 +185,63 @@ CJSONGenerator* COutputManager::SettingsToJSON(bool tofile)
   return new CJSONGenerator();
 }
 
-void COutputManager::Process()
+void COutputManager::ProcessOutput()
 {
-  int64_t now = GetTimeUs();
+  CLock lock(m_condition);
+  for (list<COutputUniverse*>::iterator it = m_universes.begin(); it != m_universes.end(); it++)
+    (*it)->MarkProcess();
+
+  m_threadprocess = true;
+  m_condition.Signal();
+  lock.Leave();
+  ProcessUniverses();
+
+  lock.Enter();
+  while (m_threadprocess)
+    m_condition.Wait();
+
+  /*int64_t now = GetTimeUs();
 
   for (list<COutputUniverse*>::iterator it = m_universes.begin(); it != m_universes.end(); it++)
   {
     if ((*it)->NeedsTransmit(now))
       m_bobtricks.QueueTransmit((*it)->ToArtNet(now));
+  }*/
+}
+
+void COutputManager::Process()
+{
+  CLock lock(m_condition);
+  while(!m_stop)
+  {
+    while (!m_threadprocess)
+      m_condition.Wait(1000000);
+
+    if (!m_threadprocess)
+      continue;
+
+    lock.Leave();
+    ProcessUniverses();
+    lock.Enter();
+    m_threadprocess = false;
+    m_condition.Signal();
+  }
+}
+
+void COutputManager::ProcessUniverses()
+{
+  int64_t now = GetTimeUs();
+  CLock lock(m_condition);
+  for (list<COutputUniverse*>::iterator it = m_universes.begin(); it != m_universes.end(); it++)
+  {
+    if ((*it)->NeedProcess())
+    {
+      (*it)->ClearProcess();
+      lock.Leave();
+      if ((*it)->NeedsTransmit(now))
+        m_bobtricks.QueueTransmit((*it)->ToArtNet(now));
+      lock.Enter();
+    }
   }
 }
 

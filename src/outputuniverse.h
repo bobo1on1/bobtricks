@@ -41,6 +41,10 @@ class COutputUniverse : public CUniverse
 
     void    MarkPresent(int64_t now);
 
+    void    MarkProcess() { m_process = true; }
+    bool    NeedProcess() { return m_process; }
+    void    ClearProcess() { m_process = false; }
+
   private:
     double  m_maxrate;
     bool    m_updated;
@@ -48,6 +52,7 @@ class COutputUniverse : public CUniverse
     std::list<CUser*> m_users;
     uint8_t m_fallback;
     int64_t m_presenttime;
+    bool    m_process;
 };
 
 #endif //OUTPUTUNIVERSE_H

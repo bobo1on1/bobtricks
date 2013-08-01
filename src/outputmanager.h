@@ -21,6 +21,8 @@
 
 #include "util/inclstdint.h"
 #include "util/mutex.h"
+#include "util/thread.h"
+#include "util/condition.h"
 #include "outputuniverse.h"
 #include "jsonsettings.h"
 
@@ -28,14 +30,16 @@
 
 class CBobTricks;
 
-class COutputManager : public CJSONSettings
+class COutputManager : public CJSONSettings, public CThread
 {
   public:
     COutputManager(CBobTricks& bobtricks);
     ~COutputManager();
 
-    void             Process();
+    void             ProcessOutput();
     int64_t          MaxDelay();
+    void             Process();
+    void             ProcessUniverses();
 
     void             LoadSettings(JSONMap& root, bool reload, bool fromfile, const std::string& source);
     COutputUniverse* FindUniverse(const std::string& name);
@@ -48,6 +52,9 @@ class COutputManager : public CJSONSettings
 
     CBobTricks&      m_bobtricks;
     CMutex           m_mutex;
+    CCondition       m_condition;
+
+    bool             m_threadprocess;
 
     std::list<COutputUniverse*> m_universes;
 };

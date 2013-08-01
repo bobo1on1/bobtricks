@@ -82,6 +82,7 @@ void CBobTricks::Setup()
   SetLogFile("bobtricks.log");
   m_outputmanager.LoadFile(false);
   m_inputmanager.LoadFile(false);
+  m_outputmanager.StartThread();
   //m_scriptmanager.LoadFile(false);
   //m_scriptmanager.StartThread();
 }
@@ -177,7 +178,7 @@ void CBobTricks::Process()
 
     ProcessInputQueue();
 
-    m_outputmanager.Process();
+    m_outputmanager.ProcessOutput();
     m_inputmanager.Process();
   }
 }
