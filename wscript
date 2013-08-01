@@ -51,5 +51,5 @@ def build(bld):
                       src/util/misc.cpp',
               use=['pthread', 'yajl', 'lua', 'lua-posix'],
               includes='./src',
-              cxxflags='-Wall -g -DUTILNAMESPACE=BobTricksUtil',
+              cxxflags='-Wall -g -O3 -march=native -DUTILNAMESPACE=BobTricksUtil',
               target='bobtricks')
