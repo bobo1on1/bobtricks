@@ -24,6 +24,7 @@
 #include "util/log.h"
 #include "util/misc.h"
 #include "util/timeutils.h"
+#include "util/lock.h"
 #include <unistd.h>
 #include <vector>
 #include <string.h>
@@ -212,6 +213,7 @@ void CBobTricks::ProcessPipeMessages()
 
 void CBobTricks::QueueTransmit(Packet* packet)
 {
+  CLock lock(m_mutex);
   m_outqueue.push_back(packet);
 }
 

@@ -24,6 +24,7 @@
 #include "outputmanager.h"
 #include "inputmanager.h"
 #include "scriptmanager.h"
+#include "util/mutex.h"
 #include <string>
 #include <vector>
 #include <deque>
@@ -59,6 +60,7 @@ class CBobTricks
     std::deque<Packet*> m_inqueue;
     bool                m_stop;
     int                 m_pipe[2];
+    CMutex              m_mutex;
 
     COutputManager      m_outputmanager;
     CInputManager       m_inputmanager;
