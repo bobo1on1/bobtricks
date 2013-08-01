@@ -144,7 +144,7 @@ void COutputManager::LoadUniverse(CJSONElement* jsonuniverse, std::string source
     }
   }
 
-  double maxrate = 61.0; //allow 60 updates per second without running into the limiter
+  double maxrate = 51.0; //allow 60 updates per second without running into the limiter
   JSONMap::iterator itmaxrate = universe.find("maxrate");
   if (itmaxrate != universe.end())
   {
