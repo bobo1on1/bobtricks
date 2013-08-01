@@ -22,6 +22,7 @@
 #include "universe.h"
 #include "user.h"
 #include "util/udpsocket.h"
+#include "util/atomic.h"
 #include <string>
 
 class COutputUniverse;
@@ -39,7 +40,7 @@ class CInputUniverse : public CUniverse, public CUser
     void        ProcessOutputMap(COutputMap& outputmap);
 
     std::string m_output;
-    bool        m_updated;
+    atom        m_updated;
     std::string m_lastinputip;
     int64_t     m_lastinputtime;
     uint16_t    m_lastinputport;

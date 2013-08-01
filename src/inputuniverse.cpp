@@ -31,7 +31,7 @@ using namespace std;
 CInputUniverse::CInputUniverse(const std::string& name, uint16_t portaddress, const std::string& ipaddress, bool enabled) :
   CUniverse(name, portaddress, ipaddress, enabled)
 {
-  m_updated = false;
+  m_updated = 0;
   m_lastinputtime = GetTimeUs() - INPUTTIMEOUT;
   m_lastinputport = 0;
 }
@@ -62,7 +62,7 @@ bool CInputUniverse::FromArtNet(Packet* packet)
   if (size > 0)
   {
     memcpy(m_channels, dmxptr->Data, size);
-    m_updated = true;
+    m_updated = 1;
     SignalUpdate();
     return true;
   }
@@ -74,13 +74,10 @@ bool CInputUniverse::FromArtNet(Packet* packet)
 
 void CInputUniverse::PreOutput()
 {
-  CLock lock(m_mutex);
-  if (m_updated)
+  if (MsgCAS(&m_updated, 1, 0))
   {
     for (list<COutputMap*>::iterator it = m_outputmaps.begin(); it != m_outputmaps.end(); it++)
       ProcessOutputMap(*(*it));
-
-    m_updated = false;
   }
 }
 

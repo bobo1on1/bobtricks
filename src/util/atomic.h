@@ -26,12 +26,7 @@ typedef volatile uint32_t atom;
 
 inline bool MsgCAS(atom* addr, atom oldval, atom newval)
 {
-#ifdef HAVE_SYNC_BOOL_COMPARE_AND_SWAP
   return __sync_bool_compare_and_swap(addr, oldval, newval);
-#else
-#warning compare and swap disabled
-  return true; //no compare and swap, so disable
-#endif
 }
 
 #endif //ATOMIC_H

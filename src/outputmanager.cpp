@@ -231,16 +231,12 @@ void COutputManager::Process()
 void COutputManager::ProcessUniverses()
 {
   int64_t now = GetTimeUs();
-  CLock lock(m_condition);
   for (list<COutputUniverse*>::iterator it = m_universes.begin(); it != m_universes.end(); it++)
   {
     if ((*it)->NeedProcess())
     {
-      (*it)->ClearProcess();
-      lock.Leave();
       if ((*it)->NeedsTransmit(now))
         m_bobtricks.QueueTransmit((*it)->ToArtNet(now));
-      lock.Enter();
     }
   }
 }

@@ -22,6 +22,7 @@
 #include "universe.h"
 #include "user.h"
 #include "util/udpsocket.h"
+#include "util/atomic.h"
 
 class COutputUniverse : public CUniverse
 {
@@ -41,9 +42,8 @@ class COutputUniverse : public CUniverse
 
     void    MarkPresent(int64_t now);
 
-    void    MarkProcess() { m_process = true; }
-    bool    NeedProcess() { return m_process; }
-    void    ClearProcess() { m_process = false; }
+    void    MarkProcess() { m_process = 1; }
+    bool    NeedProcess() { return MsgCAS(&m_process, 1, 0); }
 
   private:
     double  m_maxrate;
@@ -52,7 +52,7 @@ class COutputUniverse : public CUniverse
     std::list<CUser*> m_users;
     uint8_t m_fallback;
     int64_t m_presenttime;
-    bool    m_process;
+    atom    m_process;
 };
 
 #endif //OUTPUTUNIVERSE_H
