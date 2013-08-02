@@ -98,8 +98,9 @@ void COutputUniverse::GenerateOutput(int64_t now)
 
   if (outputmaps.size() > 0)
   {
-    for (list<COutputMap*>::iterator it = outputmaps.begin(); it != outputmaps.end(); it++)
-      (*it)->FillBuffer(m_channels);
+    //for (list<COutputMap*>::iterator it = outputmaps.begin(); it != outputmaps.end(); it++)
+      //(*it)->FillBuffer(m_channels);
+    (*(outputmaps.rbegin()))->FillBuffer(m_channels);
   }
   else
   {
