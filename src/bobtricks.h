@@ -25,6 +25,8 @@
 #include "inputmanager.h"
 #include "scriptmanager.h"
 #include "util/mutex.h"
+#include "util/thread.h"
+#include "util/condition.h"
 #include <string>
 #include <vector>
 #include <deque>
@@ -35,15 +37,17 @@ enum ThreadMsg
   MsgCheckUpdates,
 };
 
-class CBobTricks
+class CBobTricks : public CThread
 {
   public:
     CBobTricks(int argc, char *argv[]);
     ~CBobTricks();
 
     void Setup();
-    void Process();
+    void Run();
     void Cleanup();
+
+    void Process();
 
     void QueueTransmit(Packet* packet);
 
@@ -61,6 +65,8 @@ class CBobTricks
     bool                m_stop;
     int                 m_pipe[2];
     CMutex              m_mutex;
+    CCondition          m_condition;
+    bool                m_process;
 
     COutputManager      m_outputmanager;
     CInputManager       m_inputmanager;

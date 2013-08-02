@@ -21,6 +21,7 @@
 #include "universe.h"
 #include "util/log.h"
 #include "util/inclstdint.h"
+#include "util/lock.h"
 
 #define SETTINGSFILE ".bobtricks/inputs.json"
 
@@ -429,7 +430,9 @@ void CInputManager::ParseArtPoll(Packet* packet)
     return;
   }
 
+  CLock lock(m_mutex);
   m_pollrequests.push_back(CPollRequest(packet->source, packet->port, GetTimeUs()));
+  lock.Leave();
 
   packet->destination = m_broadcastip;
   packet->port = 6454;
@@ -449,6 +452,7 @@ void CInputManager::ParseArtPollReply(Packet* packet)
   LogDebug("received artpollreply from %s", packet->source.c_str());
 
   int64_t now = GetTimeUs();
+  CLock lock(m_mutex);
   for (list<CPollRequest>::iterator it = m_pollrequests.begin(); it != m_pollrequests.end(); it++)
   {
     if (now - it->time < POLLREPLYTIMEOUT)

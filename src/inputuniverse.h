@@ -23,6 +23,7 @@
 #include "user.h"
 #include "util/udpsocket.h"
 #include "util/atomic.h"
+#include "util/mutex.h"
 #include <string>
 
 class COutputUniverse;
@@ -44,6 +45,7 @@ class CInputUniverse : public CUniverse, public CUser
     std::string m_lastinputip;
     int64_t     m_lastinputtime;
     uint16_t    m_lastinputport;
+    CMutex      m_mutex;
 };
 
 #endif //INPUTUNIVERSE_H

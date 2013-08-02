@@ -43,6 +43,7 @@ CBobTricks::CBobTricks(int argc, char *argv[]) :
 {
   g_printdebuglevel = false;
   m_stop            = false;
+  m_process         = false;
 
   struct option longoptions[] =
   {
@@ -83,11 +84,12 @@ void CBobTricks::Setup()
   m_outputmanager.LoadFile(false);
   m_inputmanager.LoadFile(false);
   m_outputmanager.StartThread();
+  StartThread();
   //m_scriptmanager.LoadFile(false);
   //m_scriptmanager.StartThread();
 }
 
-void CBobTricks::Process()
+void CBobTricks::Run()
 {
   while(!m_stop)
   {
@@ -176,7 +178,15 @@ void CBobTricks::Process()
     if (FD_ISSET(m_pipe[0], &readset))
       ProcessPipeMessages();
 
+    CLock lock(m_condition);
+    m_process = true;
+    m_condition.Signal();
+    lock.Leave();
     ProcessInputQueue();
+    lock.Enter();
+    while (m_process)
+      m_condition.Wait();
+    lock.Leave();
 
     m_outputmanager.ProcessOutput();
     m_inputmanager.Process();
@@ -187,8 +197,29 @@ void CBobTricks::Cleanup()
 {
 }
 
+void CBobTricks::Process()
+{
+  while(!m_stop)
+  {
+    CLock lock(m_condition);
+    while (!m_process)
+      m_condition.Wait(1000000);
+    
+    if (!m_process)
+      continue;
+
+    lock.Leave();
+    ProcessInputQueue();
+    lock.Enter();
+
+    m_process = false;
+    m_condition.Signal();
+  }
+}
+
 void CBobTricks::ProcessInputQueue()
 {
+  CLock lock(m_condition);
   while(!m_inqueue.empty())
   {
     Packet* packet = m_inqueue.front();
@@ -197,9 +228,10 @@ void CBobTricks::ProcessInputQueue()
     LogDebug("Received udp packet of size %i source:\"%s\" destination:\"%s\"", (int)packet->data.size(),
              packet->source.c_str(), packet->destination.c_str());
 
+    lock.Leave();
     m_inputmanager.ParsePacket(packet);
-
     delete packet;
+    lock.Enter();
   }
 }
 

@@ -23,7 +23,7 @@ int main (int argc, char *argv[])
   CBobTricks bobtricks(argc, argv);
 
   bobtricks.Setup();
-  bobtricks.Process();
+  bobtricks.Run();
   bobtricks.Cleanup();
 
   return 0;

@@ -44,6 +44,7 @@ bool CInputUniverse::FromArtNet(Packet* packet)
 {
   int64_t now = GetTimeUs();
 
+  CLock lock(m_mutex);
   if (now - m_lastinputtime < INPUTTIMEOUT && (m_lastinputport != packet->port || m_lastinputip != packet->source))
     return false;
 
