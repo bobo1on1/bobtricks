@@ -174,10 +174,25 @@ void COutputManager::LoadUniverse(CJSONElement* jsonuniverse, std::string source
     }
   }
 
-  Log("adding output universe \"%s\" with portaddress:%"PRIi64" ipaddress:%s enabled:%s maxrate:%f fallback:%i",
-      name.c_str(), portaddress, itipaddress->second->AsString().c_str(), enabled ? "yes" : "no", maxrate, fallback);
+  float scale = 1.0f;
+  JSONMap::iterator itscale = universe.find("scale");
+  if (itscale != universe.end())
+  {
+    if (!itscale->second->IsNumber())
+    {
+      LogError("%sinvalid value for scale: %s", source.c_str(), ToJSON(itscale->second).c_str());
+      return;
+    }
+    else
+    {
+      scale = itscale->second->ToDouble();
+    }
+  }
 
-  m_universes.push_back(new COutputUniverse(name, portaddress, itipaddress->second->AsString(), enabled, maxrate, fallback));
+  Log("adding output universe \"%s\" with portaddress:%"PRIi64" ipaddress:%s enabled:%s maxrate:%f fallback:%i scale:%f",
+      name.c_str(), portaddress, itipaddress->second->AsString().c_str(), enabled ? "yes" : "no", maxrate, fallback, scale);
+
+  m_universes.push_back(new COutputUniverse(name, portaddress, itipaddress->second->AsString(), enabled, maxrate, fallback, scale));
 }
 
 CJSONGenerator* COutputManager::SettingsToJSON(bool tofile)

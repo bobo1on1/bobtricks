@@ -28,7 +28,7 @@ class COutputUniverse : public CUniverse
 {
   public:
     COutputUniverse(const std::string& name, uint16_t portaddress, const std::string& ipaddress,
-                    bool enabled, double maxrate, uint8_t fallback);
+                    bool enabled, double maxrate, uint8_t fallback, float scale);
     ~COutputUniverse();
 
     int64_t MaxDelay(int64_t now);
@@ -55,6 +55,7 @@ class COutputUniverse : public CUniverse
     int64_t m_presenttime;
     bool    m_waspresent;
     atom    m_process;
+    float   m_scale;
 };
 
 #endif //OUTPUTUNIVERSE_H

@@ -20,6 +20,7 @@
 #include "util/misc.h"
 #include "util/timeutils.h"
 #include "util/log.h"
+#include "util/misc.h"
 #include <algorithm>
 
 #define ARTPOLLREPLYTIMEOUT 3500000
@@ -27,7 +28,7 @@
 using namespace std;
 
 COutputUniverse::COutputUniverse(const std::string& name, uint16_t portaddress, const std::string& ipaddress,
-                                 bool enabled, double maxrate, uint8_t fallback) :
+                                 bool enabled, double maxrate, uint8_t fallback, float scale) :
   CUniverse(name, portaddress, ipaddress, enabled)
 {
   m_maxrate = maxrate;
@@ -37,6 +38,7 @@ COutputUniverse::COutputUniverse(const std::string& name, uint16_t portaddress, 
   m_process = false;
   m_presenttime = GetTimeUs() - (POLLINTERVAL + ARTPOLLREPLYTIMEOUT) * 2;
   m_waspresent = false;
+  m_scale = scale;
 }
 
 COutputUniverse::~COutputUniverse()
@@ -104,6 +106,11 @@ void COutputUniverse::GenerateOutput(int64_t now)
     memset(m_channels + 1, m_fallback, sizeof(m_channels) - 1);
   }
 
+  if (m_scale != 1.0f)
+  {
+    for (size_t i = 0; i < sizeof(m_channels); i++)
+      m_channels[i] = Round32((float)m_channels[i] * m_scale);
+  }
 }
 
 Packet* COutputUniverse::ToArtNet(int64_t now)
