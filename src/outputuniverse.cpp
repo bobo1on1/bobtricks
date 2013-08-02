@@ -24,6 +24,7 @@
 #include <algorithm>
 
 #define ARTPOLLREPLYTIMEOUT 3500000
+#define MISSINGTIMEOUT (POLLINTERVAL * 3 + ARTPOLLREPLYTIMEOUT)
 
 using namespace std;
 
@@ -36,7 +37,7 @@ COutputUniverse::COutputUniverse(const std::string& name, uint16_t portaddress, 
   m_lasttransmit = GetTimeUs() - Round64(1000000.0 / maxrate);
   m_fallback = fallback;
   m_process = false;
-  m_presenttime = GetTimeUs() - (POLLINTERVAL + ARTPOLLREPLYTIMEOUT) * 2;
+  m_presenttime = GetTimeUs() - MISSINGTIMEOUT;
   m_waspresent = false;
   m_scale = scale;
 }
@@ -161,6 +162,6 @@ void COutputUniverse::MarkPresent(int64_t now)
 
 bool COutputUniverse::IsPresent(int64_t now)
 {
-  return now - m_presenttime <= POLLINTERVAL + ARTPOLLREPLYTIMEOUT;
+  return now - m_presenttime < MISSINGTIMEOUT;
 }
 
