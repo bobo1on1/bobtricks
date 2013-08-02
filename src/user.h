@@ -23,6 +23,7 @@
 #include <list>
 #include <string>
 #include "util/timeutils.h"
+#include "util/mutex.h"
 
 class COutputUniverse;
 class CUser;
@@ -66,6 +67,7 @@ class COutputMap
     int64_t              m_timeout;
     int64_t              m_lastupdate;
     bool                 m_usehighest;
+    CMutex               m_mutex;
 };
 
 class CUser

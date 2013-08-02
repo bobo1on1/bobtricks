@@ -21,11 +21,13 @@
 #include "util/log.h"
 #include <algorithm>
 #include <string.h>
+#include "util/lock.h"
 
 using namespace std;
 
 void COutputMap::FillBuffer(uint8_t* outbuf)
 {
+  CLock lock(m_mutex);
   if (m_outstart < 0 || m_outstart > 511)
     return;
 
