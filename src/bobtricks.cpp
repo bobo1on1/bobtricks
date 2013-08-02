@@ -199,6 +199,8 @@ void CBobTricks::Cleanup()
 
 void CBobTricks::Process()
 {
+  SetThreadName("input");
+
   while(!m_stop)
   {
     CLock lock(m_condition);

@@ -27,6 +27,8 @@ def configure(conf):
   conf.env.append_value('LINKFLAGS', '-llua5.1')
   conf.check(lib='lua5.1-posix', uselib_store='lua-posix')
 
+  conf.check(function_name='pthread_setname_np', header_name='pthread.h', lib='pthread', mandatory=False)
+
   conf.write_config_header('config.h')
 
 def build(bld):

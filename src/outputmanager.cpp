@@ -226,6 +226,8 @@ void COutputManager::ProcessOutput()
 
 void COutputManager::Process()
 {
+  SetThreadName("output");
+
   CLock lock(m_condition);
   while(!m_stop)
   {
