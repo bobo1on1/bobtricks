@@ -100,7 +100,8 @@ void COutputUniverse::GenerateOutput(int64_t now)
   }
   else
   {
-    memset(m_channels, m_fallback, sizeof(m_channels));
+    m_channels[0] = 0xFF;
+    memset(m_channels + 1, m_fallback, sizeof(m_channels) - 1);
   }
 
 }
