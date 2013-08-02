@@ -140,7 +140,13 @@ void CBobTricks::Run()
           Packet* packet = new Packet;
           if (m_socket.GetMessage(*packet))
           {
+            CLock lock(m_condition);
             m_inqueue.push_back(packet);
+            if (!m_process)
+            {
+              m_process = true;
+              m_condition.Signal();
+            }
           }
           else
           {
