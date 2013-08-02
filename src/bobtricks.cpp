@@ -188,11 +188,11 @@ void CBobTricks::Run()
     m_process = true;
     m_condition.Signal();
     lock.Leave();
-    ProcessInputQueue();
+    /*ProcessInputQueue();
     lock.Enter();
     while (m_process)
       m_condition.Wait();
-    lock.Leave();
+    lock.Leave();*/
 
     m_outputmanager.ProcessOutput();
     m_inputmanager.Process();
