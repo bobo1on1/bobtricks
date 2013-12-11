@@ -1,0 +1,15 @@
+{
+  "universes": [
+    {
+      "name": "1",
+      "portaddress" : 0,
+      "ipaddress" : "172.31.41.107",
+      "enabled" : true,
+      "maxrate" : 61
+    },
+    {
+      "name": "2",
+      "ipaddress" : "172.31.41.105"
+    }
+  ]
+}

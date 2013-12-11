@@ -1,0 +1,45 @@
+{
+  "broadcast" : "172.31.41.255",
+  "universes": [
+    {
+      "name": "1",
+      "portaddress" : 0,
+      "ipaddress" : "172.31.41.111",
+      "enabled" : true,
+      "outputs" : [
+        {
+          "universe" : "1",
+          "reverse" : true,
+          "instart" : 0,
+          "outstart" : 0,
+          "channels" : 450
+        },
+        {
+          "universe" : "2"
+        }
+      ]
+    },
+    {
+      "name": "2",
+      "portaddress" : 1,
+      "ipaddress" : "172.31.41.111",
+      "enabled" : true,
+      "outputs" : [
+        {
+          "universe" : "1",
+          "reverse" : true,
+          "instart" : 0,
+          "outstart" : 0,
+          "channels" : 450,
+          "alpha" : 1.0,
+          "usehighest" : true
+        },
+        {
+          "universe" : "2",
+          "priority" : 1001
+        }
+      ]
+    }
+
+  ]
+}
